@@ -9,7 +9,7 @@ load_dotenv()
 app = create_app()
 if __name__ == '__main__':
     # Obtener configuración desde variables de entorno
-    config_name = os.environ.get('FLASK_CONFIG', 'development')
+    config_name = os.environ.get('FLASK_CONFIG')
     
     # Ejecutar la aplicación
     app.run(

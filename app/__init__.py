@@ -7,7 +7,7 @@ from app.extensions import init_extensions
 def create_app(config_name=None):
     # Determinar la configuración a utilizar
     if config_name is None:
-        config_name = os.environ.get('FLASK_CONFIG', 'default')
+        config_name = os.environ.get('FLASK_CONFIG')
     
     # Crear aplicación Flask
     app = Flask(__name__, 
