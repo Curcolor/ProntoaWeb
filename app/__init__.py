@@ -4,7 +4,7 @@ from app.config import config
 from app.extensions import init_extensions
 
 
-def create_app(config_name=None):
+def create_app(config_name='development'):
     # Determinar la configuración a utilizar
     if config_name is None:
         config_name = os.environ.get('FLASK_CONFIG')

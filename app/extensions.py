@@ -1,19 +1,11 @@
 """
 Extensiones de Flask para la aplicación.
-Solo las extensiones necesarias y inicialización de base de datos.
+Solo las extensiones necesarias y futura inicialización de base de datos.
 """
 
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-
-# Inicialización de extensiones
-db = SQLAlchemy()
 
 def init_extensions(app: Flask) -> None:
-    # Inicializar base de datos
-    db.init_app(app)
-    
     # Configurar variables básicas para templates
     init_template_context(app)
 

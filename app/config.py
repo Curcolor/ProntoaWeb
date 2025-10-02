@@ -12,14 +12,11 @@ class Config:
     BASE_DIR = Path(__file__).parent.parent.absolute()
     
     # Configuración de debug
-    DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() in ['true', '1', 'yes']
+    DEBUG = os.environ.get('FLASK_DEBUG', 'False')
     
     # Configuración de host y puerto
     HOST = os.environ.get('FLASK_HOST', '127.0.0.1')
     PORT = int(os.environ.get('FLASK_PORT', 5000))
-    
-    # Configuración de base de datos
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     
     @staticmethod
     def init_app(app):
@@ -33,8 +30,6 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """Configuración para entorno de producción."""
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
-
 
 # Configuraciones disponibles
 config = {
