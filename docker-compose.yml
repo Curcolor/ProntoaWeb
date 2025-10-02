@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # Aplicación Flask en modo desarrollo
+  web:
+    build: .
+    container_name: prontoa-web-dev
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=True
+      - FLASK_HOST=0.0.0.0
+      - FLASK_PORT=5000
+      - FLASK_CONFIG=development
+    volumes:
+      # Montar código fuente para desarrollo en vivo
+      - .:/app
+      - /app/__pycache__
+    restart: unless-stopped
+    networks:
+      - prontoa-network-dev
+    command: python run.py
+
+networks:
+  prontoa-network-dev:
+    driver: bridge

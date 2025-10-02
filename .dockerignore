@@ -1,0 +1,48 @@
+# Archivos de Docker
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+
+# Directorio de instancia (base de datos SQLite)
+instance/
+
+# Archivos de entorno
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+logs/
+
+# Archivos temporales
+*.tmp
+*.temp
+
+# Cache de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Entorno virtual
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Certificados SSL (si se usan)
+ssl/
+*.key
+*.crt
+*.pem

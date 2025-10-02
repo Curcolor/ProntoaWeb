@@ -1,0 +1,201 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Perfil - ProntoaWeb{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block navbar %}
+<!-- Sidebar y navbar del perfil -->
+<div class="dashboard-layout">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <span class="brand-text">Prontoa!</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="{{ url_for('viewpages.dashboard') }}" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('viewpages.profile') }}" class="menu-item active">
+                <i class="fas fa-user"></i>
+                <span>Perfil</span>
+            </a>
+            <a href="{{ url_for('viewpages.settings') }}" class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="{{ url_for('viewpages.login') }}" class="menu-item text-danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main-content">
+{% endblock %}
+
+{% block content %}
+        <!-- Encabezado del perfil -->
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <div class="avatar-circle">A</div>
+            </div>
+            <div class="profile-info">
+                <h1 class="profile-name">Alexis Mendoza</h1>
+                <p class="profile-subtitle">Propietario - Panadería El Trigo Dorado</p>
+                <div class="profile-badges">
+                    <span class="badge badge-success">
+                        <i class="fas fa-store"></i> Panadería
+                    </span>
+                    <span class="badge badge-info">
+                        <i class="fab fa-whatsapp"></i> WhatsApp Activo
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido del perfil -->
+        <div class="profile-content">
+            <!-- Información Personal -->
+            <div class="profile-section">
+                <div class="section-header">
+                    <i class="fas fa-user"></i>
+                    <h2>Información Personal</h2>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="info-content">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">carlos.mendoza@email.com</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="info-content">
+                            <span class="info-label">Teléfono</span>
+                            <span class="info-value">+57 300 123 4567</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="info-content">
+                            <span class="info-label">Ubicación</span>
+                            <span class="info-value">Barrio El Prado, Barranquilla</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="info-content">
+                            <span class="info-label">Negocio</span>
+                            <span class="info-value">Panadería El Trigo Dorado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen de Gestión -->
+            <div class="profile-section">
+                <div class="section-header">
+                    <i class="fas fa-chart-bar"></i>
+                    <h2>Resumen de Gestión</h2>
+                </div>
+                <div class="metrics-row">
+                    <div class="metric-item primary">
+                        <div class="metric-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value">3.2min</div>
+                            <div class="metric-label">Tiempo Promedio</div>
+                            <div class="metric-sublabel">Respuesta a pedidos</div>
+                        </div>
+                    </div>
+                    <div class="metric-item info">
+                        <div class="metric-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value">147</div>
+                            <div class="metric-label">Pedidos</div>
+                            <div class="metric-sublabel">Gestionados</div>
+                            <div class="metric-period">Este mes</div>
+                        </div>
+                    </div>
+                    <div class="metric-item warning">
+                        <div class="metric-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value">4.8</div>
+                            <div class="metric-label">Satisfacción</div>
+                            <div class="metric-sublabel">Promedio cliente</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optimización de Procesos -->
+            <div class="profile-section">
+                <div class="section-header">
+                    <i class="fas fa-rocket"></i>
+                    <h2>Optimización de Procesos</h2>
+                </div>
+                <div class="optimization-list">
+                    <div class="optimization-item positive">
+                        <div class="optimization-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="optimization-content">
+                            <span class="optimization-text">Reducción de tiempo de respuesta</span>
+                            <span class="optimization-value">-45%</span>
+                        </div>
+                    </div>
+                    <div class="optimization-item positive">
+                        <div class="optimization-icon">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="optimization-content">
+                            <span class="optimization-text">Aumento en ventas</span>
+                            <span class="optimization-value">+32%</span>
+                        </div>
+                    </div>
+                    <div class="optimization-item positive">
+                        <div class="optimization-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="optimization-content">
+                            <span class="optimization-text">Mejora en satisfacción</span>
+                            <span class="optimization-value">+28%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}

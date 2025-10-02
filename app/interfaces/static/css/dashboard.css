@@ -1,0 +1,338 @@
+/* Dashboard Styles */
+.dashboard-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 240px;
+    background: white;
+    border-right: 1px solid #e9ecef;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.brand-icon {
+    width: 32px;
+    height: 32px;
+    background: #25d366;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+}
+
+.brand-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: #212529;
+}
+
+.sidebar-menu {
+    padding: 1rem 0;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    color: #6c757d;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.menu-item:hover {
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+.menu-item.active {
+    background-color: #e7f3ff;
+    color: #0066cc;
+    border-right: 3px solid #0066cc;
+}
+
+.menu-item i {
+    font-size: 16px;
+    width: 20px;
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 240px;
+    flex: 1;
+    padding: 0;
+}
+
+/* Top Bar */
+.top-bar {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #212529;
+    margin: 0;
+}
+
+.top-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.status-indicator.online {
+    color: #28a745;
+}
+
+.status-indicator i {
+    font-size: 8px;
+}
+
+.last-update {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #28a745;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.user-avatar:hover {
+    background: #218838;
+    transform: scale(1.05);
+    color: white;
+    text-decoration: none;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+}
+
+.metric-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
+.metric-card.primary {
+    border-left: 4px solid #007bff;
+}
+
+.metric-card.success {
+    border-left: 4px solid #28a745;
+}
+
+.metric-card.purple {
+    border-left: 4px solid #6f42c1;
+}
+
+.metric-card.warning {
+    border-left: 4px solid #ffc107;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.metric-card.primary .metric-value {
+    color: #007bff;
+}
+
+.metric-card.success .metric-value {
+    color: #28a745;
+}
+
+.metric-card.purple .metric-value {
+    color: #6f42c1;
+}
+
+.metric-card.warning .metric-value {
+    color: #ffc107;
+}
+
+.metric-label {
+    font-size: 14px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Kanban Board */
+.kanban-board {
+    display: flex;
+    gap: 1rem;
+    padding: 0 2rem 2rem;
+    overflow-x: auto;
+    min-height: 600px;
+}
+
+.kanban-column {
+    min-width: 250px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+    height: fit-content;
+}
+
+.column-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+    border-radius: 8px 8px 0 0;
+}
+
+.column-header.received {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.column-header.preparing {
+    background-color: #fff3e0;
+    color: #f57c00;
+}
+
+.column-header.ready {
+    background-color: #fff8e1;
+    color: #f9a825;
+}
+
+.column-header.sent {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.column-header.paid {
+    background-color: #e8f5e8;
+    color: #388e3c;
+}
+
+.column-header.closed {
+    background-color: #f5f5f5;
+    color: #757575;
+}
+
+.column-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.column-content {
+    padding: 1rem;
+    min-height: 200px;
+}
+
+.order-card {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.order-card:hover {
+    background: #e9ecef;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.order-card:last-child {
+    margin-bottom: 0;
+}
+
+.order-id {
+    font-size: 14px;
+    font-weight: 500;
+    color: #495057;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s;
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+    
+    .kanban-board {
+        padding: 0 1rem 1rem;
+    }
+    
+    .kanban-column {
+        min-width: 200px;
+    }
+    
+    .top-bar {
+        padding: 1rem;
+    }
+    
+    .top-bar-actions {
+        gap: 1rem;
+    }
+    
+    .last-update {
+        display: none;
+    }
+}

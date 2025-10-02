@@ -7,7 +7,7 @@ from .viewpages_routes import viewpages_bp
 
 # Lista de todos los blueprints disponibles
 blueprints = [
-    viewpages_bp  # API con prefijo
+    viewpages_bp 
 ]
 
 __all__ = ['blueprints']

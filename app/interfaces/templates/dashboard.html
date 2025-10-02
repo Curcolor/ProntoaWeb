@@ -1,0 +1,176 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Dashboard - ProntoaWeb{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block navbar %}
+<!-- Sidebar y navbar del dashboard -->
+<div class="dashboard-layout">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <span class="brand-text">Prontoa!</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="{{ url_for('viewpages.dashboard') }}" class="menu-item active">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('viewpages.profile') }}" class="menu-item">
+                <i class="fas fa-user"></i>
+                <span>Perfil</span>
+            </a>
+            <a href="{{ url_for('viewpages.settings') }}" class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="{{ url_for('viewpages.login') }}" class="menu-item text-danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main-content">
+        <!-- Top bar -->
+        <div class="top-bar">
+            <h1 class="page-title">Panel de Control</h1>
+            <div class="top-bar-actions">
+                <span class="status-indicator online">
+                    <i class="fas fa-circle"></i>
+                    Online
+                </span>
+                <span class="last-update">Última actualización: hace 2 min</span>
+                <a href="{{ url_for('viewpages.profile') }}" class="user-avatar" title="Ver perfil">
+                    <span>A</span>
+                </a>
+            </div>
+        </div>
+{% endblock %}
+
+{% block content %}
+        <!-- Métricas principales -->
+        <div class="metrics-grid">
+            <div class="metric-card primary">
+                <div class="metric-value">24</div>
+                <div class="metric-label">Pedidos Hoy</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-value">4.2min</div>
+                <div class="metric-label">Tiempo Promedio</div>
+            </div>
+            <div class="metric-card purple">
+                <div class="metric-value">$850K</div>
+                <div class="metric-label">Ventas del Día</div>
+            </div>
+            <div class="metric-card warning">
+                <div class="metric-value">98%</div>
+                <div class="metric-label">Satisfacción</div>
+            </div>
+        </div>
+
+        <!-- Tablero Kanban -->
+        <div class="kanban-board">
+            <!-- Columna Recibido -->
+            <div class="kanban-column">
+                <div class="column-header received">
+                    <h3>Recibido (3)</h3>
+                </div>
+                <div class="column-content">
+                    <div class="order-card">
+                        <div class="order-id">Pedido #1234</div>
+                    </div>
+                    <div class="order-card">
+                        <div class="order-id">Pedido #1235</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna En Preparación -->
+            <div class="kanban-column">
+                <div class="column-header preparing">
+                    <h3>En Preparación (5)</h3>
+                </div>
+                <div class="column-content">
+                    <div class="order-card">
+                        <div class="order-id">Pedido #1230</div>
+                    </div>
+                    <div class="order-card">
+                        <div class="order-id">Pedido #1231</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Listo -->
+            <div class="kanban-column">
+                <div class="column-header ready">
+                    <h3>Listo (2)</h3>
+                </div>
+                <div class="column-content">
+                    <div class="order-card">
+                        <div class="order-id">Pedido #1228</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Enviado -->
+            <div class="kanban-column">
+                <div class="column-header sent">
+                    <h3>Enviado (4)</h3>
+                </div>
+                <div class="column-content">
+                    <div class="order-card">
+                        <div class="order-id">Pedido #1225</div>
+                    </div>
+                    <div class="order-card">
+                        <div class="order-id">Pedido #1226</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Pagado -->
+            <div class="kanban-column">
+                <div class="column-header paid">
+                    <h3>Pagado (6)</h3>
+                </div>
+                <div class="column-content">
+                    <div class="order-card">
+                        <div class="order-id">Pedido #1220</div>
+                    </div>
+                    <div class="order-card">
+                        <div class="order-id">Pedido #1221</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Cerrado -->
+            <div class="kanban-column">
+                <div class="column-header closed">
+                    <h3>Cerrado (12)</h3>
+                </div>
+                <div class="column-content">
+                    <div class="order-card">
+                        <div class="order-id">Pedido #1218</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

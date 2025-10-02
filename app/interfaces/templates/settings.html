@@ -1,0 +1,302 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Configuración - ProntoaWeb{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+{% endblock %}
+
+{% block navbar %}
+<!-- Sidebar y navbar de configuración -->
+<div class="dashboard-layout">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <span class="brand-text">Prontoa!</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="{{ url_for('viewpages.dashboard') }}" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('viewpages.profile') }}" class="menu-item">
+                <i class="fas fa-user"></i>
+                <span>Perfil</span>
+            </a>
+            <a href="{{ url_for('viewpages.settings') }}" class="menu-item active">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="{{ url_for('viewpages.login') }}" class="menu-item text-danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main-content">
+{% endblock %}
+
+{% block content %}
+        <!-- Encabezado -->
+        <div class="settings-header">
+            <h1 class="page-title">Configuración</h1>
+        </div>
+
+        <!-- Grid de configuraciones -->
+        <div class="settings-grid">
+            <!-- Visualización de Tablas -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <div class="card-icon tables">
+                        <i class="fas fa-table"></i>
+                    </div>
+                    <div class="card-title">
+                        <h3>Visualización de Tablas</h3>
+                        <p>Configura cómo se muestran tus pedidos y datos</p>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="setting-group">
+                        <label for="orderBy" class="setting-label">Ordenar por defecto</label>
+                        <select id="orderBy" class="form-select">
+                            <option value="recent">Fecha más reciente</option>
+                            <option value="oldest">Fecha más antigua</option>
+                            <option value="amount">Monto</option>
+                            <option value="status">Estado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label class="setting-label">Pedidos por página</label>
+                        <div class="pagination-options">
+                            <button class="pagination-btn active">10</button>
+                            <button class="pagination-btn">25</button>
+                            <button class="pagination-btn">50</button>
+                            <button class="pagination-btn">100</button>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label class="setting-label">Filtros activos</label>
+                        <div class="toggle-group">
+                            <div class="toggle-item">
+                                <span>Mostrar solo pedidos pendientes</span>
+                                <label class="toggle">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="toggle-item">
+                                <span>Ocultar pedidos cancelados</span>
+                                <label class="toggle">
+                                    <input type="checkbox">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notificaciones -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <div class="card-icon notifications">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="card-title">
+                        <h3>Notificaciones</h3>
+                        <p>Controla cuándo y cómo recibir alertas</p>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="setting-group">
+                        <label class="setting-label">Tipos de notificaciones</label>
+                        <div class="notification-types">
+                            <div class="notification-item">
+                                <div class="notification-info">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span>Nuevos pedidos</span>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="notification-item">
+                                <div class="notification-info">
+                                    <i class="fas fa-truck"></i>
+                                    <span>Recordatorios de entrega</span>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="notification-item">
+                                <div class="notification-info">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span>Pedidos urgentes</span>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="alertFrequency" class="setting-label">Frecuencia de alertas</label>
+                        <select id="alertFrequency" class="form-select">
+                            <option value="immediate">Inmediata</option>
+                            <option value="every5">Cada 5 minutos</option>
+                            <option value="every15">Cada 15 minutos</option>
+                            <option value="hourly">Cada hora</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración del Negocio -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <div class="card-icon business">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="card-title">
+                        <h3>Configuración del Negocio</h3>
+                        <p>Ajustes específicos para tu tipo de negocio</p>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="setting-group">
+                        <label for="businessType" class="setting-label">Tipo de negocio</label>
+                        <select id="businessType" class="form-select">
+                            <option value="restaurant">Restaurante</option>
+                            <option value="bakery">Panadería</option>
+                            <option value="pharmacy">Farmacia</option>
+                            <option value="grocery">Tienda</option>
+                            <option value="other">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-group">
+                        <label class="setting-label">Horario de atención</label>
+                        <div class="time-range">
+                            <div class="time-input">
+                                <label>Apertura</label>
+                                <input type="time" value="08:00" class="form-control">
+                            </div>
+                            <div class="time-input">
+                                <label>Cierre</label>
+                                <input type="time" value="20:00" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label class="setting-label">Configuración de entrega</label>
+                        <div class="toggle-group">
+                            <div class="toggle-item">
+                                <span>Activar delivery</span>
+                                <label class="toggle">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="toggle-item">
+                                <span>Recoger en tienda</span>
+                                <label class="toggle">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Integración WhatsApp -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <div class="card-icon whatsapp">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <div class="card-title">
+                        <h3>Integración WhatsApp</h3>
+                        <p>Configura tu gestión de pedidos vía WhatsApp</p>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="setting-group">
+                        <label class="setting-label">Respuestas automáticas</label>
+                        <div class="toggle-group">
+                            <div class="toggle-item">
+                                <span>Confirmación de pedido</span>
+                                <label class="toggle">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="toggle-item">
+                                <span>Estado de preparación</span>
+                                <label class="toggle">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="toggle-item">
+                                <span>Pedido listo</span>
+                                <label class="toggle">
+                                    <input type="checkbox">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label class="setting-label">Plantillas de mensajes</label>
+                        <div class="template-preview">
+                            <div class="template-item">
+                                <strong>Pedido recibido:</strong>
+                                <p>"¡Hola! Tu pedido ha sido recibido y estará listo próximamente. Te notificaremos cuando esté listo. (Brindado por alegrínm)"</p>
+                                <button class="btn-edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="settings-actions">
+            <button class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                Guardar todos los cambios
+            </button>
+            <button class="btn btn-secondary">
+                <i class="fas fa-undo"></i>
+                Restaurar valores predeterminados
+            </button>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+{% endblock %}

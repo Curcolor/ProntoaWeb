@@ -1,0 +1,155 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Crear Cuenta - ProntoaWeb{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-background">
+        <!-- Header con logo -->
+        <div class="auth-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <span class="brand-text">Prontoa!</span>
+            </div>
+        </div>
+
+        <!-- Formulario de registro -->
+        <div class="auth-form-container">
+            <div class="auth-card">
+                <div class="auth-card-header">
+                    <div class="auth-logo">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <h1 class="auth-title">Prontoa!</h1>
+                    <h2 class="auth-subtitle">Crear Cuenta</h2>
+                    <p class="auth-description">Únete a la plataforma que revoluciona los pedidos por WhatsApp en Barranquilla</p>
+                </div>
+
+                <form class="auth-form" action="{{ url_for('viewpages.register') }}" method="POST">
+                    <div class="form-group">
+                        <label for="fullName" class="form-label">Nombre Completo</label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input type="text" 
+                                   id="fullName" 
+                                   name="fullName" 
+                                   class="form-control" 
+                                   placeholder="Tu nombre completo"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">Correo Electrónico</label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                            <input type="email" 
+                                   id="email" 
+                                   name="email" 
+                                   class="form-control" 
+                                   placeholder="tu@email.com"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone" class="form-label">Número de Teléfono</label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-phone"></i>
+                            </span>
+                            <input type="tel" 
+                                   id="phone" 
+                                   name="phone" 
+                                   class="form-control" 
+                                   placeholder="+57 300 123 4567"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="businessName" class="form-label">Nombre del Negocio</label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-store"></i>
+                            </span>
+                            <input type="text" 
+                                   id="businessName" 
+                                   name="businessName" 
+                                   class="form-control" 
+                                   placeholder="Restaurante La Esquina"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" 
+                                   id="password" 
+                                   name="password" 
+                                   class="form-control" 
+                                   placeholder="Mínimo 8 caracteres"
+                                   required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-requirements">
+                            <small>Debe contener al menos 8 caracteres, una mayúscula y un número</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" 
+                                   id="confirmPassword" 
+                                   name="confirmPassword" 
+                                   class="form-control" 
+                                   placeholder="Confirma tu contraseña"
+                                   required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-auth">
+                        <i class="fas fa-user-plus"></i>
+                        Crear Cuenta
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>¿Ya tienes cuenta? <a href="{{ url_for('viewpages.login') }}" class="auth-link">Iniciar Sesión</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}
