@@ -1,0 +1,159 @@
+/* CSS específico para la página de inicio de Prontoa */
+
+/* Estilos adicionales para el hero */
+.hero-phone-mockup {
+    background: rgba(255,255,255,0.1);
+    border-radius: 30px;
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+}
+
+.hero-whatsapp-card {
+    background: #1e3a8a;
+    color: white;
+    padding: 1.5rem;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+}
+
+.hero-confirmation-card {
+    background: white;
+    color: #333;
+    padding: 1rem;
+    border-radius: 15px;
+    text-align: left;
+}
+
+/* Dashboard preview styles */
+.dashboard-preview {
+    background: #1e293b;
+    border-radius: 20px;
+    padding: 2rem;
+    color: white;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.dashboard-status {
+    background: #22c55e;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+}
+
+.dashboard-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.metric-card {
+    padding: 1.5rem;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.metric-card.green { background: #22c55e; }
+.metric-card.blue { background: #3b82f6; }
+.metric-card.purple { background: #8b5cf6; }
+.metric-card.orange { background: #f59e0b; }
+
+.metric-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0;
+    color: white;
+}
+
+.metric-label {
+    font-size: 0.8rem;
+    color: white;
+    opacity: 0.9;
+}
+
+.kanban-board {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+}
+
+.kanban-column {
+    background: #374151;
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.kanban-column small {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.8rem;
+}
+
+/* Solution section dashboard */
+.solution-dashboard {
+    background: #1e293b;
+    border-radius: 20px;
+    padding: 2rem;
+    color: white;
+}
+
+.solution-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.solution-metric {
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.solution-metric.green { background: #22c55e; }
+.solution-metric.blue { background: #3b82f6; }
+.solution-metric.orange { background: #f59e0b; }
+.solution-metric.red { background: #ef4444; }
+
+.solution-metric h6 {
+    color: white;
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.solution-metric h4 {
+    color: white;
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dashboard-metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .kanban-board {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .solution-metrics {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .dashboard-metrics {
+        grid-template-columns: 1fr;
+    }
+    
+    .kanban-board {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

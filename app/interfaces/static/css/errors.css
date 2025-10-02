@@ -1,0 +1,216 @@
+/* Estilos para páginas de error */
+
+.error-container {
+    max-width: 600px;
+    margin: 100px auto 0;
+    padding: 40px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.error-code {
+    font-size: 96px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.error-code.not-found {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+    -webkit-text-fill-color: transparent;
+}
+
+.error-code.forbidden {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    -webkit-text-fill-color: transparent;
+}
+
+.error-code.server-error {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    -webkit-text-fill-color: transparent;
+}
+
+.error-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.error-message {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.error-actions {
+    margin-top: 2rem;
+}
+
+.btn-error-primary {
+    display: inline-block;
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #25D366, #1DA851);
+    color: white;
+    text-decoration: none;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin: 0 10px;
+}
+
+.btn-error-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-error-secondary {
+    display: inline-block;
+    padding: 12px 30px;
+    background: transparent;
+    color: #7f8c8d;
+    text-decoration: none;
+    border: 2px solid #bdc3c7;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin: 0 10px;
+}
+
+.btn-error-secondary:hover {
+    background: #ecf0f1;
+    color: #2c3e50;
+    border-color: #95a5a6;
+    text-decoration: none;
+}
+
+.error-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.7;
+}
+
+.error-icon.not-found {
+    color: #dc3545;
+}
+
+.error-icon.forbidden {
+    color: #f39c12;
+}
+
+.error-icon.server-error {
+    color: #e74c3c;
+}
+
+.error-details {
+    background: #f8f9fa;
+    border-left: 4px solid #dee2e6;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    border-radius: 0 8px 8px 0;
+    text-align: left;
+}
+
+.error-details h6 {
+    margin-bottom: 0.5rem;
+    color: #495057;
+    font-weight: 600;
+}
+
+.error-details p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Animaciones */
+@keyframes errorFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.error-container {
+    animation: errorFadeIn 0.6s ease-out;
+}
+
+@keyframes bounce {
+    0%, 20%, 53%, 80%, 100% {
+        transform: translate3d(0,0,0);
+    }
+    40%, 43% {
+        transform: translate3d(0,-10px,0);
+    }
+    70% {
+        transform: translate3d(0,-5px,0);
+    }
+    90% {
+        transform: translate3d(0,-2px,0);
+    }
+}
+
+.error-icon {
+    animation: bounce 2s infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .error-container {
+        margin: 50px 20px 0;
+        padding: 30px 20px;
+    }
+    
+    .error-code {
+        font-size: 72px;
+    }
+    
+    .error-title {
+        font-size: 1.5rem;
+    }
+    
+    .btn-error-primary,
+    .btn-error-secondary {
+        display: block;
+        margin: 10px 0;
+        width: 100%;
+    }
+}
+
+/* Tema oscuro (opcional) */
+@media (prefers-color-scheme: dark) {
+    .error-container {
+        background: #2c3e50;
+        color: #ecf0f1;
+    }
+    
+    .error-title {
+        color: #ecf0f1;
+    }
+    
+    .error-details {
+        background: #34495e;
+        border-left-color: #95a5a6;
+    }
+    
+    .error-details h6 {
+        color: #bdc3c7;
+    }
+    
+    .error-details p {
+        color: #95a5a6;
+    }
+}

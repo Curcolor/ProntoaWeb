@@ -1,6 +1,6 @@
 {% extends "layout/base.html" %}
 
-{% block title %}404 - Página no encontrada | ProntoaWeb{% endblock %}
+{% block title %}403 - Acceso denegado | ProntoaWeb{% endblock %}
 
 {% block stylesheets %}
 <!-- CSS específico para páginas de error -->
@@ -20,25 +20,26 @@
 
 {% block content %}
 <div class="error-container">
-    <div class="error-icon not-found">
-        <i class="fas fa-search"></i>
+    <div class="error-icon forbidden">
+        <i class="fas fa-lock"></i>
     </div>
     
-    <div class="error-code not-found">404</div>
+    <div class="error-code forbidden">403</div>
     
-    <h1 class="error-title">Página no encontrada</h1>
+    <h1 class="error-title">Acceso denegado</h1>
     
     <p class="error-message">
-        Lo sentimos, la página que buscas no existe o ha sido movida. 
-        Puede que hayas escribido mal la URL o que el enlace esté desactualizado.
+        No tienes los permisos necesarios para acceder a este recurso. 
+        Si crees que esto es un error, contacta al administrador del sistema.
     </p>
     
     <div class="error-details">
-        <h6>¿Qué puedes hacer?</h6>
+        <h6>Posibles causas:</h6>
         <p>
-            • Verifica que la URL esté escrita correctamente<br>
-            • Regresa a la página principal y navega desde ahí<br>
-            • Usa nuestro menú de navegación para encontrar lo que buscas
+            • No tienes permisos para ver este contenido<br>
+            • Tu sesión puede haber expirado<br>
+            • El recurso requiere autenticación especial<br>
+            • Necesitas contactar al administrador
         </p>
     </div>
     
@@ -46,8 +47,8 @@
         <a href="{{ url_for('viewpages.home') }}" class="btn-error-primary">
             <i class="fas fa-home me-2"></i>Ir al inicio
         </a>
-        <a href="javascript:history.back()" class="btn-error-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Volver atrás
+        <a href="mailto:{{ support_email }}?subject=Problema de acceso - Error 403" class="btn-error-secondary">
+            <i class="fas fa-envelope me-2"></i>Contactar soporte
         </a>
     </div>
 </div>
@@ -59,7 +60,7 @@
     <div class="container">
         <p class="text-muted mb-0">
             &copy; {{ current_year }} {{ company_name }}. 
-            <a href="{{ url_for('viewpages.home') }}" class="text-decoration-none">Volver al sitio</a>
+            ¿Necesitas ayuda? <a href="mailto:{{ support_email }}" class="text-decoration-none">Contacta soporte</a>
         </p>
     </div>
 </footer>
