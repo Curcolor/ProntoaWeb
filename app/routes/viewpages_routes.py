@@ -21,6 +21,12 @@ def dashboard():
     return render_template('dashboard.html')
 
 
+@viewpages_bp.route('/kpis')
+def kpis():
+    """Página de KPIs y métricas de rendimiento."""
+    return render_template('kpis.html')
+
+
 @viewpages_bp.route('/profile')
 def profile():
     """Página de perfil del usuario con información personal y métricas."""

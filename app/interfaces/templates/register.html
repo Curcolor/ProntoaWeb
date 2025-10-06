@@ -6,7 +6,16 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 {% endblock %}
 
-{% block navbar %}{% endblock %}
+{% block navbar %}
+<!-- Navbar simple para auth -->
+<nav class="auth-navbar">
+    <div class="container">
+        <a href="{{ url_for('viewpages.home') }}" class="auth-nav-brand">
+            <i class="fab fa-whatsapp"></i> Prontoa
+        </a>
+    </div>
+</nav>
+{% endblock %}
 
 {% block content %}
 <div class="auth-container">

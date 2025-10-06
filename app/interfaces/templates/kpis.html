@@ -1,0 +1,422 @@
+{% extends "layout/base.html" %}
+
+{% block title %}KPIs y Métricas - ProntoaWeb{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/kpis.css') }}">
+{% endblock %}
+
+{% block navbar %}
+<!-- Sidebar y navbar del dashboard -->
+<div class="dashboard-layout">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <span class="brand-text">Prontoa!</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="{{ url_for('viewpages.dashboard') }}" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('viewpages.kpis') }}" class="menu-item active">
+                <i class="fas fa-chart-bar"></i>
+                <span>KPIs</span>
+            </a>
+            <a href="{{ url_for('viewpages.profile') }}" class="menu-item">
+                <i class="fas fa-user"></i>
+                <span>Perfil</span>
+            </a>
+            <a href="{{ url_for('viewpages.settings') }}" class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="{{ url_for('viewpages.login') }}" class="menu-item text-danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main-content">
+        <!-- Top bar -->
+        <div class="top-bar">
+            <h1 class="page-title">KPIs y Métricas de Rendimiento</h1>
+            <div class="top-bar-actions">
+                <select class="period-selector">
+                    <option value="today">Hoy</option>
+                    <option value="week">Esta semana</option>
+                    <option value="month" selected>Este mes</option>
+                    <option value="quarter">Este trimestre</option>
+                </select>
+                <button class="btn-export">
+                    <i class="fas fa-download"></i>
+                    Exportar
+                </button>
+            </div>
+        </div>
+{% endblock %}
+
+{% block content %}
+        <!-- Métricas principales de mejora -->
+        <div class="kpi-summary-grid">
+            <div class="kpi-card improvement">
+                <div class="kpi-header">
+                    <div class="kpi-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div class="kpi-trend positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+72%</span>
+                    </div>
+                </div>
+                <div class="kpi-content">
+                    <h3 class="kpi-value">3.2min</h3>
+                    <p class="kpi-label">Tiempo Promedio de Respuesta</p>
+                    <small class="kpi-comparison">vs 18 min anterior</small>
+                </div>
+            </div>
+
+            <div class="kpi-card growth">
+                <div class="kpi-header">
+                    <div class="kpi-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="kpi-trend positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+45%</span>
+                    </div>
+                </div>
+                <div class="kpi-content">
+                    <h3 class="kpi-value">287</h3>
+                    <p class="kpi-label">Pedidos Procesados</p>
+                    <small class="kpi-comparison">vs 198 mes anterior</small>
+                </div>
+            </div>
+
+            <div class="kpi-card efficiency">
+                <div class="kpi-header">
+                    <div class="kpi-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="kpi-trend positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+28%</span>
+                    </div>
+                </div>
+                <div class="kpi-content">
+                    <h3 class="kpi-value">94.8%</h3>
+                    <p class="kpi-label">Tasa de Conversión</p>
+                    <small class="kpi-comparison">vs 74% anterior</small>
+                </div>
+            </div>
+
+            <div class="kpi-card satisfaction">
+                <div class="kpi-header">
+                    <div class="kpi-icon">
+                        <i class="fas fa-smile"></i>
+                    </div>
+                    <div class="kpi-trend positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+15%</span>
+                    </div>
+                </div>
+                <div class="kpi-content">
+                    <h3 class="kpi-value">4.8/5</h3>
+                    <p class="kpi-label">Satisfacción del Cliente</p>
+                    <small class="kpi-comparison">vs 4.2 anterior</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos y análisis detallado -->
+        <div class="kpi-charts-section">
+            <div class="row">
+                <!-- Gráfico de tendencias -->
+                <div class="col-lg-8">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h4>Tendencia de Mejoras</h4>
+                            <div class="chart-filters">
+                                <button class="filter-btn active">Tiempos</button>
+                                <button class="filter-btn">Pedidos</button>
+                                <button class="filter-btn">Conversión</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="trendsChart" class="chart-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparativa antes/después -->
+                <div class="col-lg-4">
+                    <div class="comparison-card">
+                        <h4>Antes vs Después</h4>
+                        <div class="comparison-items">
+                            <div class="comparison-item">
+                                <div class="comparison-metric">
+                                    <span class="metric-label">Tiempo de Respuesta</span>
+                                    <div class="metric-bars">
+                                        <div class="metric-bar before">
+                                            <span class="bar-label">Antes</span>
+                                            <div class="bar-fill" style="width: 90%"></div>
+                                            <span class="bar-value">18 min</span>
+                                        </div>
+                                        <div class="metric-bar after">
+                                            <span class="bar-label">Después</span>
+                                            <div class="bar-fill" style="width: 18%"></div>
+                                            <span class="bar-value">3.2 min</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="comparison-item">
+                                <div class="comparison-metric">
+                                    <span class="metric-label">Tasa de Abandono</span>
+                                    <div class="metric-bars">
+                                        <div class="metric-bar before">
+                                            <span class="bar-label">Antes</span>
+                                            <div class="bar-fill warning" style="width: 70%"></div>
+                                            <span class="bar-value">35%</span>
+                                        </div>
+                                        <div class="metric-bar after">
+                                            <span class="bar-label">Después</span>
+                                            <div class="bar-fill success" style="width: 12%"></div>
+                                            <span class="bar-value">6%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="comparison-item">
+                                <div class="comparison-metric">
+                                    <span class="metric-label">Carga Operativa</span>
+                                    <div class="metric-bars">
+                                        <div class="metric-bar before">
+                                            <span class="bar-label">Antes</span>
+                                            <div class="bar-fill danger" style="width: 85%"></div>
+                                            <span class="bar-value">85%</span>
+                                        </div>
+                                        <div class="metric-bar after">
+                                            <span class="bar-label">Después</span>
+                                            <div class="bar-fill success" style="width: 35%"></div>
+                                            <span class="bar-value">35%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métricas operativas detalladas -->
+        <div class="operational-metrics">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="metrics-card">
+                        <h4>Eficiencia Operativa</h4>
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <div class="metric-icon efficiency">
+                                    <i class="fas fa-cogs"></i>
+                                </div>
+                                <div class="metric-data">
+                                    <span class="metric-value">98.5%</span>
+                                    <span class="metric-label">Automatización</span>
+                                    <span class="metric-change positive">+68%</span>
+                                </div>
+                            </div>
+
+                            <div class="metric-item">
+                                <div class="metric-icon time">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="metric-data">
+                                    <span class="metric-value">42h</span>
+                                    <span class="metric-label">Tiempo Ahorrado/Semana</span>
+                                    <span class="metric-change positive">+350%</span>
+                                </div>
+                            </div>
+
+                            <div class="metric-item">
+                                <div class="metric-icon accuracy">
+                                    <i class="fas fa-bullseye"></i>
+                                </div>
+                                <div class="metric-data">
+                                    <span class="metric-value">99.2%</span>
+                                    <span class="metric-label">Precisión IA</span>
+                                    <span class="metric-change positive">+25%</span>
+                                </div>
+                            </div>
+
+                            <div class="metric-item">
+                                <div class="metric-icon errors">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="metric-data">
+                                    <span class="metric-value">0.8%</span>
+                                    <span class="metric-label">Tasa de Errores</span>
+                                    <span class="metric-change negative">-89%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="metrics-card">
+                        <h4>Impacto Financiero</h4>
+                        <div class="financial-metrics">
+                            <div class="financial-item revenue">
+                                <div class="financial-icon">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div class="financial-data">
+                                    <h5>Incremento en Ventas</h5>
+                                    <span class="financial-value">+$2.4M</span>
+                                    <span class="financial-period">Este mes</span>
+                                    <div class="financial-trend">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span>+32% vs mes anterior</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="financial-item savings">
+                                <div class="financial-icon">
+                                    <i class="fas fa-piggy-bank"></i>
+                                </div>
+                                <div class="financial-data">
+                                    <h5>Ahorro Operativo</h5>
+                                    <span class="financial-value">$850K</span>
+                                    <span class="financial-period">Mensual</span>
+                                    <div class="financial-trend">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span>Reducción de costos</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="financial-item roi">
+                                <div class="financial-icon">
+                                    <i class="fas fa-chart-pie"></i>
+                                </div>
+                                <div class="financial-data">
+                                    <h5>ROI</h5>
+                                    <span class="financial-value">485%</span>
+                                    <span class="financial-period">Retorno de Inversión</span>
+                                    <div class="financial-trend">
+                                        <i class="fas fa-trophy"></i>
+                                        <span>Excelente rendimiento</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas y recomendaciones -->
+        <div class="insights-section">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="insights-card">
+                        <h4>Insights y Recomendaciones</h4>
+                        <div class="insights-list">
+                            <div class="insight-item success">
+                                <div class="insight-icon">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <div class="insight-content">
+                                    <h6>Optimización detectada</h6>
+                                    <p>El horario de 2-4 PM muestra el mayor volumen de pedidos. Considera ajustar personal para este período.</p>
+                                </div>
+                            </div>
+
+                            <div class="insight-item warning">
+                                <div class="insight-icon">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                                <div class="insight-content">
+                                    <h6>Oportunidad de mejora</h6>
+                                    <p>Los pedidos de fin de semana tienen un 12% más de tiempo de respuesta. Implementar automatización adicional.</p>
+                                </div>
+                            </div>
+
+                            <div class="insight-item info">
+                                <div class="insight-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="insight-content">
+                                    <h6>Tendencia positiva</h6>
+                                    <p>La satisfacción del cliente ha crecido consistentemente 3% cada semana durante el último mes.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="goals-card">
+                        <h4>Objetivos del Mes</h4>
+                        <div class="goals-list">
+                            <div class="goal-item">
+                                <div class="goal-header">
+                                    <span class="goal-title">Tiempo de Respuesta</span>
+                                    <span class="goal-progress">95%</span>
+                                </div>
+                                <div class="goal-bar">
+                                    <div class="goal-fill" style="width: 95%"></div>
+                                </div>
+                                <small>Meta: < 3 min | Actual: 3.2 min</small>
+                            </div>
+
+                            <div class="goal-item">
+                                <div class="goal-header">
+                                    <span class="goal-title">Conversión</span>
+                                    <span class="goal-progress">105%</span>
+                                </div>
+                                <div class="goal-bar">
+                                    <div class="goal-fill success" style="width: 100%"></div>
+                                </div>
+                                <small>Meta: 90% | Actual: 94.8% ✓</small>
+                            </div>
+
+                            <div class="goal-item">
+                                <div class="goal-header">
+                                    <span class="goal-title">Satisfacción</span>
+                                    <span class="goal-progress">96%</span>
+                                </div>
+                                <div class="goal-bar">
+                                    <div class="goal-fill" style="width: 96%"></div>
+                                </div>
+                                <small>Meta: 5.0 | Actual: 4.8</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/kpis.js') }}"></script>
+{% endblock %}

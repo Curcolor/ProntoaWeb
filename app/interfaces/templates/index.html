@@ -36,8 +36,8 @@
             </ul>
             
             <div class="d-flex">
-                <button class="btn btn-login me-2">Iniciar Sesión</button>
-                <button class="btn btn-trial">Prueba gratis</button>
+                <a href="{{ url_for('viewpages.login') }}" class="btn btn-login me-2">Iniciar Sesión</a>
+                <a href="{{ url_for('viewpages.register') }}" class="btn btn-trial">Prueba gratis</a>
             </div>
         </div>
     </div>
@@ -50,47 +50,43 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6">
-                <h1 class="hero-title">Automatiza tus pedidos de WhatsApp</h1>
-                <p class="hero-subtitle">Reduce los tiempos de respuesta de 15 minutos a menos de 5 minutos con nuestro agente IA especializado para negocios locales en Barranquilla.</p>
+                <h1 class="hero-title">Automatiza tus pedidos de <span class="hero-highlight">WhatsApp</span></h1>
+                <p class="hero-subtitle">Reduce los tiempos de respuesta de 18 minutos a menos de 5 minutos con nuestro agente de IA especializado para negocios locales en Barranquilla.</p>
                 
                 <div class="hero-buttons">
-                    <button class="btn btn-primary-hero">
-                        <i class="fas fa-play me-2"></i>Solicitar Demo
-                    </button>
-                    <button class="btn btn-secondary-hero">
+                    <a href="{{ url_for('viewpages.register') }}" class="btn btn-primary-hero">
+                        <i class="fas fa-play me-2"></i>Comenzar Gratis
+                    </a>
+                    <a href="#demo" class="btn btn-secondary-hero">
                         <i class="fas fa-eye me-2"></i>Ver Demo
-                    </button>
+                    </a>
                 </div>
                 
                 <div class="hero-stats">
                     <div class="stat-item">
                         <span class="stat-number">31K+</span>
-                        <span class="stat-label">Clientes Activos</span>
+                        <span class="stat-label">Negocios Potenciales</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-number">52.5%</span>
-                        <span class="stat-label">Más Conversiones</span>
+                        <span class="stat-label">Adopción IA</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number">< 5min</span>
+                        <span class="stat-number">&lt;5min</span>
                         <span class="stat-label">Tiempo Respuesta</span>
                     </div>
                 </div>
             </div>
             
             <div class="col-lg-6">
-                <div class="hero-image text-center">
-                    <div class="position-relative">
-                        <div class="hero-phone-mockup">
-                            <div class="hero-whatsapp-card">
-                                <i class="fab fa-whatsapp" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                                <h4>WhatsApp Business</h4>
-                                <p class="mb-0">Pedido procesado automáticamente</p>
-                            </div>
-                            <div class="hero-confirmation-card">
-                                <small style="color: #25D366; font-weight: 600;">✓ Pedido confirmado</small>
-                                <p class="mb-0 mt-1" style="font-size: 0.9rem;">Tu pedido será entregado en 30-45 min</p>
-                            </div>
+                <div class="hero-phone-container">
+                    <div class="hero-phone-mockup">
+                        <img src="{{ url_for('static', filename='images/phone-whatsapp.png') }}" 
+                             alt="Celular con WhatsApp Business abierto" 
+                             class="hero-phone-image">
+                        <div class="hero-notification">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Pedido procesado automáticamente</span>
                         </div>
                     </div>
                 </div>
@@ -102,43 +98,51 @@
 <!-- Problem Section -->
 <section class="problem-section" id="problema">
     <div class="container">
-        <h2 class="section-title">El Problema que Resolvemos</h2>
-        <p class="section-subtitle">Los negocios locales enfrentan desafíos significativos en la gestión manual de pedidos vía WhatsApp</p>
+        <div class="text-center mb-5">
+            <h2 class="section-title">El Problema que Resolvemos</h2>
+            <p class="section-subtitle">Los negocios locales enfrentan desafíos significativos en la gestión manual de pedidos vía WhatsApp</p>
+        </div>
         
-        <div class="row">
-            <div class="col-lg-4 mb-4">
-                <div class="problem-card">
-                    <div class="problem-icon red">
-                        <i class="fas fa-clock"></i>
+        <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="problem-card problem-card-red">
+                    <div class="problem-icon">
+                        <i class="far fa-clock"></i>
                     </div>
                     <h4 class="problem-title">Tiempos Excesivos</h4>
-                    <p>Los negocios tardan de 10 a 15 minutos cuando los clientes esperan respuestas instantáneas en menos de 5 minutos</p>
-                    <span class="problem-stat">18 min</span>
-                    <small>tiempo promedio actual</small>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 mb-4">
-                <div class="problem-card">
-                    <div class="problem-icon orange">
-                        <i class="fas fa-chart-line-down"></i>
+                    <p class="problem-description">Demoras de 12-25 minutos cuando los clientes esperan respuestas en menos de 5 minutos</p>
+                    <div class="problem-stat">
+                        <span class="stat-number">18 min</span>
+                        <span class="stat-label">Tiempo promedio actual</span>
                     </div>
-                    <h4 class="problem-title">Perdida de Ventas</h4>
-                    <p>Los clientes abandonan el proceso por falta de respuesta oportuna</p>
-                    <span class="problem-stat">35%</span>
-                    <small>abandono por demora</small>
                 </div>
             </div>
             
-            <div class="col-lg-4 mb-4">
-                <div class="problem-card">
-                    <div class="problem-icon yellow">
-                        <i class="fas fa-users"></i>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="problem-card problem-card-orange">
+                    <div class="problem-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h4 class="problem-title">Pérdida de Ventas</h4>
+                    <p class="problem-description">Clientes abandonan el proceso por falta de respuesta oportuna</p>
+                    <div class="problem-stat">
+                        <span class="stat-number">35%</span>
+                        <span class="stat-label">Abandono promedio</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="problem-card problem-card-yellow">
+                    <div class="problem-icon">
+                        <i class="fas fa-user-friends"></i>
                     </div>
                     <h4 class="problem-title">Sobrecarga Operativa</h4>
-                    <p>Los empleados dedican una gestión manual al 85% de las consultas repetitivas</p>
-                    <span class="problem-stat">85%</span>
-                    <small>consultas repetitivas</small>
+                    <p class="problem-description">Empleados saturados con gestión manual de múltiples conversaciones</p>
+                    <div class="problem-stat">
+                        <span class="stat-number">85%</span>
+                        <span class="stat-label">Carga de trabajo</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -148,73 +152,62 @@
 <!-- Solution Section -->
 <section class="solution-section" id="caracteristicas">
     <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Nuestra Solución</h2>
+            <p class="section-subtitle">Sistema inteligente de gestión de pedidos con tablero Kanban y automatización completa</p>
+        </div>
+        
         <div class="row align-items-center">
             <div class="col-lg-6">
-                <h2 class="section-title text-start">Nuestra Solución</h2>
-                <p class="section-subtitle text-start">Sistema inteligente de gestión de pedidos con tablero Kanban y automatización completa</p>
-                
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-robot"></i>
+                <div class="solution-features">
+                    <div class="feature-item">
+                        <div class="feature-icon feature-icon-green">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h5 class="feature-title">Agente IA Inteligente</h5>
+                            <p class="feature-description">Respuestas automáticas y procesamiento de pedidos 24/7 con comprensión de lenguaje natural</p>
+                        </div>
                     </div>
-                    <div>
-                        <h5 class="feature-title">Agente IA Inteligente</h5>
-                        <p class="feature-description">Respuestas automáticas y procesamiento de pedidos 24/7 con comprensión de lenguaje natural</p>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon feature-icon-blue">
+                            <i class="fas fa-th-large"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h5 class="feature-title">Tablero Kanban Digital</h5>
+                            <p class="feature-description">Organización visual: Recibido → En preparación → Listo → Enviado → Pagado → Cerrado</p>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-kanban"></i>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon feature-icon-teal">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h5 class="feature-title">Notificaciones Automáticas</h5>
+                            <p class="feature-description">Actualizaciones en tiempo real al cliente durante todo el ciclo del pedido</p>
+                        </div>
                     </div>
-                    <div>
-                        <h5 class="feature-title">Tablero Kanban Digital</h5>
-                        <p class="feature-description">Organización visual - En preparación → En camino → Entregado → Pagado → Devuelto</p>
-                    </div>
-                </div>
-                
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                    <div>
-                        <h5 class="feature-title">Notificaciones Automáticas</h5>
-                        <p class="feature-description">Avisos automáticos en tiempo real desde el cliente durante todo el ciclo del pedido</p>
-                    </div>
-                </div>
-                
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div>
-                        <h5 class="feature-title">Analítica en Tiempo Real</h5>
-                        <p class="feature-description">Métricas clave: pedidos del día, tiempos de respuesta, alertas y vencimientos</p>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon feature-icon-dark">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h5 class="feature-title">Analytics en Tiempo Real</h5>
+                            <p class="feature-description">Métricas clave: pedidos del día, tiempos de respuesta, alertas y rendimiento</p>
+                        </div>
                     </div>
                 </div>
             </div>
             
             <div class="col-lg-6">
-                <div class="text-center">
-                    <div class="solution-dashboard">
-                        <div class="solution-metrics">
-                            <div class="solution-metric green">
-                                <h6>Ventas Hoy</h6>
-                                <h4>$850K</h4>
-                            </div>
-                            <div class="solution-metric blue">
-                                <h6>Pedidos</h6>
-                                <h4>124</h4>
-                            </div>
-                            <div class="solution-metric orange">
-                                <h6>En Proceso</h6>
-                                <h4>23</h4>
-                            </div>
-                            <div class="solution-metric red">
-                                <h6>Alertas</h6>
-                                <h4>3</h4>
-                            </div>
-                        </div>
+                <div class="solution-dashboard-container">
+                    <div class="solution-dashboard-mockup">
+                        <img src="{{ url_for('static', filename='images/kpi.png') }}" 
+                             alt="Dashboard de gestión de pedidos" 
+                             class="dashboard-image">
                     </div>
                 </div>
             </div>
@@ -225,54 +218,60 @@
 <!-- Dashboard Preview -->
 <section class="dashboard-section" id="demo">
     <div class="container">
-        <h2 class="section-title">Vista Previa del Dashboard</h2>
-        <p class="section-subtitle">Interfaz intuitiva diseñada para maximizar la eficiencia operativa</p>
+        <div class="text-center mb-5">
+            <h2 class="section-title">Vista Previa del Dashboard</h2>
+            <p class="section-subtitle">Interfaz intuitiva diseñada para maximizar la eficiencia operativa</p>
+        </div>
         
-        <div class="text-center">
-            <div class="dashboard-preview">
-                <div class="dashboard-header">
-                    <h4 style="color: #22c55e;">Panel de Control</h4>
-                    <span class="dashboard-status">Online</span>
-                </div>
-                
-                <div class="dashboard-metrics">
-                    <div class="metric-card green">
-                        <h3 class="metric-number">24</h3>
-                        <small class="metric-label">Pedidos Hoy</small>
-                    </div>
-                    <div class="metric-card blue">
-                        <h3 class="metric-number">4.2min</h3>
-                        <small class="metric-label">Tiempo Promedio</small>
-                    </div>
-                    <div class="metric-card purple">
-                        <h3 class="metric-number">$850K</h3>
-                        <small class="metric-label">Ventas del Día</small>
-                    </div>
-                    <div class="metric-card orange">
-                        <h3 class="metric-number">98%</h3>
-                        <small class="metric-label">Satisfacción</small>
+        <div class="dashboard-preview-container">
+            <div class="dashboard-preview-image">
+                <img src="{{ url_for('static', filename='images/dashboard-preview.png') }}" 
+                     alt="Vista completa del Dashboard de gestión de pedidos" 
+                     class="dashboard-full-image">
+                <div class="dashboard-overlay">
+                    <div class="dashboard-badge">
+                        <i class="fas fa-play"></i>
+                        <span>Ver Demo Interactivo</span>
                     </div>
                 </div>
-                
-                <div class="kanban-board">
-                    <div class="kanban-column">
-                        <small>Recibidos (5)</small>
+            </div>
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="dashboard-feature">
+                    <div class="dashboard-feature-icon">
+                        <i class="fas fa-eye"></i>
                     </div>
-                    <div class="kanban-column">
-                        <small>En Preparación (8)</small>
+                    <h5>Vista en Tiempo Real</h5>
+                    <p>Monitoreo completo de todos los pedidos activos</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="dashboard-feature">
+                    <div class="dashboard-feature-icon">
+                        <i class="fas fa-chart-bar"></i>
                     </div>
-                    <div class="kanban-column">
-                        <small>Listos (2)</small>
+                    <h5>Métricas Visuales</h5>
+                    <p>Gráficos interactivos para análisis rápido</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="dashboard-feature">
+                    <div class="dashboard-feature-icon">
+                        <i class="fas fa-tasks"></i>
                     </div>
-                    <div class="kanban-column">
-                        <small>Enviados (4)</small>
+                    <h5>Gestión Kanban</h5>
+                    <p>Organización visual del flujo de trabajo</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="dashboard-feature">
+                    <div class="dashboard-feature-icon">
+                        <i class="fas fa-bell"></i>
                     </div>
-                    <div class="kanban-column">
-                        <small>Pagados (5)</small>
-                    </div>
-                    <div class="kanban-column">
-                        <small>Devueltos (1)</small>
-                    </div>
+                    <h5>Alertas Inteligentes</h5>
+                    <p>Notificaciones automáticas y prioritarias</p>
                 </div>
             </div>
         </div>

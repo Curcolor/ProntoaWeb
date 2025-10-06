@@ -1,4 +1,8 @@
 /* Profile Styles */
+.profile-content {
+    padding: 2rem;
+}
+
 .profile-header {
     background: white;
     padding: 2rem;

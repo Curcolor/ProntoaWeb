@@ -3,6 +3,7 @@
 {% block title %}Perfil - ProntoaWeb{% endblock %}
 
 {% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 {% endblock %}
 
@@ -25,6 +26,10 @@
                 <i class="fas fa-chart-line"></i>
                 <span>Dashboard</span>
             </a>
+            <a href="{{ url_for('viewpages.kpis') }}" class="menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>KPIs</span>
+            </a>
             <a href="{{ url_for('viewpages.profile') }}" class="menu-item active">
                 <i class="fas fa-user"></i>
                 <span>Perfil</span>
@@ -45,26 +50,33 @@
 {% endblock %}
 
 {% block content %}
-        <!-- Encabezado del perfil -->
-        <div class="profile-header">
-            <div class="profile-avatar">
-                <div class="avatar-circle">A</div>
-            </div>
-            <div class="profile-info">
-                <h1 class="profile-name">Alexis Mendoza</h1>
-                <p class="profile-subtitle">Propietario - Panadería El Trigo Dorado</p>
-                <div class="profile-badges">
-                    <span class="badge badge-success">
-                        <i class="fas fa-store"></i> Panadería
-                    </span>
-                    <span class="badge badge-info">
-                        <i class="fab fa-whatsapp"></i> WhatsApp Activo
-                    </span>
-                </div>
-            </div>
+        <!-- Top bar -->
+        <div class="top-bar">
+            <h1 class="page-title">Perfil</h1>
         </div>
 
         <!-- Contenido del perfil -->
+        <div class="profile-content">
+            <!-- Encabezado del perfil -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <div class="avatar-circle">A</div>
+                </div>
+                <div class="profile-info">
+                    <h1 class="profile-name">Alexis Mendoza</h1>
+                    <p class="profile-subtitle">Propietario - Panadería El Trigo Dorado</p>
+                    <div class="profile-badges">
+                        <span class="badge badge-success">
+                            <i class="fas fa-store"></i> Panadería
+                        </span>
+                        <span class="badge badge-info">
+                            <i class="fab fa-whatsapp"></i> WhatsApp Activo
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenido del perfil -->
         <div class="profile-content">
             <!-- Información Personal -->
             <div class="profile-section">

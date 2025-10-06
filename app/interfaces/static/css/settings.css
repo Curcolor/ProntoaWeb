@@ -1,10 +1,4 @@
 /* Settings Styles */
-.settings-header {
-    background: white;
-    padding: 2rem;
-    border-bottom: 1px solid #e9ecef;
-}
-
 .settings-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));

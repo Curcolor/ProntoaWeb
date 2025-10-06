@@ -3,6 +3,7 @@
 {% block title %}Configuración - ProntoaWeb{% endblock %}
 
 {% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
 {% endblock %}
 
@@ -25,6 +26,10 @@
                 <i class="fas fa-chart-line"></i>
                 <span>Dashboard</span>
             </a>
+            <a href="{{ url_for('viewpages.kpis') }}" class="menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>KPIs</span>
+            </a>
             <a href="{{ url_for('viewpages.profile') }}" class="menu-item">
                 <i class="fas fa-user"></i>
                 <span>Perfil</span>
@@ -45,8 +50,8 @@
 {% endblock %}
 
 {% block content %}
-        <!-- Encabezado -->
-        <div class="settings-header">
+        <!-- Top bar -->
+        <div class="top-bar">
             <h1 class="page-title">Configuración</h1>
         </div>
 
