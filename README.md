@@ -2,7 +2,7 @@
 
 Sistema web de automatización de pedidos vía WhatsApp para negocios locales en Barranquilla.
 
-## 🎯 Problemática
+## Problemática
 
 Los pequeños y medianos negocios en Barranquilla enfrentan desafíos críticos en la gestión de pedidos:
 
@@ -12,24 +12,24 @@ Los pequeños y medianos negocios en Barranquilla enfrentan desafíos críticos 
 - **Crecimiento limitado**: Incapacidad de escalar operaciones
 - **Competencia desigual**: Desventaja frente a grandes cadenas digitalizadas
 
-## 💡 Solución
+## Solución
 
 ProntoaWeb automatiza la gestión de pedidos de WhatsApp mediante:
 
-- **🤖 Agente IA**: Respuestas automáticas 24/7 con procesamiento de lenguaje natural
-- **📊 Dashboard Kanban**: Gestión visual del flujo de pedidos
-- **🔄 Integración WhatsApp**: Conexión directa con WhatsApp Business API
-- **📈 Analytics**: Métricas de ventas y rendimiento en tiempo real
-- **⚡ Automatización**: Confirmación automática de disponibilidad y precios
+- **Agente IA**: Respuestas automáticas 24/7 con procesamiento de lenguaje natural
+- **Dashboard Kanban**: Gestión visual del flujo de pedidos
+- **Integración WhatsApp**: Conexión directa con WhatsApp Business API
+- **Analytics**: Métricas de ventas y rendimiento en tiempo real
+- **Automatización**: Confirmación automática de disponibilidad y precios
 
-## �️ Stack Tecnológico
+## Stack Tecnológico
 
 - **Backend**: Flask 3.0 + Python 3.13
 - **Frontend**: HTML5, CSS3, Bootstrap 5, JavaScript ES6+
 - **Arquitectura**: Patrón Factory con Blueprints modulares
 - **Plantillas**: Jinja2 con diseño responsivo
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 ProntoaWeb/
@@ -50,7 +50,7 @@ ProntoaWeb/
 └── requirements.txt            # Dependencias
 ```
 
-## � Instalación Rápida
+## Instalación Rápida
 
 ### Requisitos Previos
 - Python 3.11+ 
@@ -87,7 +87,7 @@ python run.py
 
 La aplicación estará disponible en: http://127.0.0.1:5000
 
-## 🔧 Configuración
+## Configuración
 
 ### Variables de Entorno
 Crear archivo `.env` en la raíz del proyecto:
@@ -103,7 +103,7 @@ FLASK_PORT=5000
 - `development`: Desarrollo local con debug activo
 - `production`: Producción optimizada
 
-## 🐳 Docker (Futuro)
+## Docker
 
 ```bash
 # Construcción y ejecución
@@ -113,7 +113,7 @@ docker-compose up -d
 docker-compose -f docker-compose.dev.yml up
 ```
 
-## 📈 Funcionalidades Actuales
+## Funcionalidades Actuales
 
 ### Landing Page ✅
 - Hero section con propuesta de valor
@@ -122,17 +122,16 @@ docker-compose -f docker-compose.dev.yml up
 - Formularios de contacto
 - Diseño responsivo
 
-### En Desarrollo 🚧
+### En Desarrollo 
 - Dashboard administrativo
 - Sistema de autenticación
 - Integración WhatsApp Business API
 - Base de datos PostgreSQL
 - Panel de analytics
 
-## 🎨 Arquitectura
+## Arquitectura
 
 ### Patrón de Diseño
-- **Factory Pattern**: Inicialización modular de la aplicación
 - **Blueprint Pattern**: Organización de rutas por funcionalidad
 - **MVC Modificado**: Separación clara de responsabilidades
 
@@ -141,7 +140,7 @@ docker-compose -f docker-compose.dev.yml up
 - **Versionado**: Git Flow con ramas feature/bugfix/hotfix
 - **Commits**: Convención semántica (feat/fix/docs/style/refactor)
 
-## 🚦 Comandos Útiles
+## Comandos Útiles
 
 ```bash
 # Desarrollo
@@ -149,17 +148,4 @@ python run.py
 
 # Producción
 FLASK_CONFIG=production python run.py
-
-# Verificar rutas registradas
-python -c "from app import create_app; app = create_app(); print([str(rule) for rule in app.url_map.iter_rules()])"
 ```
-
-## � Contacto y Soporte
-
-- **Email**: soporte@prontoa.com
-- **WhatsApp**: +57 300 123 4567
-- **Documentación**: Ver carpeta `docs/` para mockups y especificaciones
-
----
-
-**Sistema desarrollado para impulsar la digitalización de negocios locales en Barranquilla** 🇨🇴
