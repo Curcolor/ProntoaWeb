@@ -2,6 +2,6 @@ Flask
 python-dotenv
 Jinja2
 # Para manejo de formularios CSRF en Flask
-itsdangerous
+Flask-WTF
 # Servidor web de desarrollo
 Werkzeug

@@ -43,6 +43,9 @@
                 </div>
 
                 <form class="auth-form" action="{{ url_for('viewpages.register') }}" method="POST">
+                    <!-- Token CSRF para protección contra ataques CSRF -->
+                    {{ csrf_token() }}
+                    
                     <div class="form-group">
                         <label for="fullName" class="form-label">Nombre Completo</label>
                         <div class="input-group">

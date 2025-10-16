@@ -36,6 +36,9 @@
                 </div>
 
                 <form class="auth-form" action="{{ url_for('viewpages.login') }}" method="POST">
+                    <!-- Token CSRF para protección contra ataques CSRF -->
+                    {{ csrf_token() }}
+                    
                     <div class="form-group">
                         <label for="email" class="form-label">Correo electrónico</label>
                         <div class="input-group">

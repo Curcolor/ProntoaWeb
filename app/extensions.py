@@ -4,8 +4,17 @@ Solo las extensiones necesarias y futura inicialización de base de datos.
 """
 
 from flask import Flask
+from flask_wtf.csrf import CSRFProtect
+
+# Inicializar CSRF Protection
+csrf = CSRFProtect()
+
 
 def init_extensions(app: Flask) -> None:
+    """Inicializa todas las extensiones de Flask."""
+    # Inicializar CSRF Protection
+    csrf.init_app(app)
+    
     # Configurar variables básicas para templates
     init_template_context(app)
 
