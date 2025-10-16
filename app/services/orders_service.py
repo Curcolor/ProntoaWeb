@@ -13,7 +13,7 @@ class OrdersService:
         {
             'id': 101,
             'customer': 'Cliente A',
-            'items': '2x Arepa + 1x Jugo',
+            'items': '2x Panes de mantequilla + 1x Jugo hit',
             'status': 'Recibido',
             'assigned_to': 'worker@prontoa.test',
             'created_at': '2024-01-15 10:30',
@@ -22,7 +22,7 @@ class OrdersService:
         {
             'id': 102,
             'customer': 'Cliente B',
-            'items': '3x Empanada',
+            'items': '3x Croissant',
             'status': 'En Preparación',
             'assigned_to': 'worker@prontoa.test',
             'created_at': '2024-01-15 10:45',
@@ -31,7 +31,7 @@ class OrdersService:
         {
             'id': 103,
             'customer': 'Cliente C',
-            'items': '1x Bandeja Paisa',
+            'items': '1x Café + 1x pan de bono',
             'status': 'Listo',
             'assigned_to': 'worker@prontoa.test',
             'created_at': '2024-01-15 11:00',

@@ -97,6 +97,7 @@ FLASK_CONFIG=development
 FLASK_DEBUG=True
 FLASK_HOST=127.0.0.1
 FLASK_PORT=5000
+SECRET_KEY=prontoa_dev_secret_2024
 ```
 
 ### Entornos Disponibles

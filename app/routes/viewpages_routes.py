@@ -53,8 +53,13 @@ def register():
 def login():
     """Página de inicio de sesión con dos usuarios: admin y trabajador."""
     if request.method == 'POST':
-        email = request.form.get('email', '').strip()
-        password = request.form.get('password', '')
+        # En desarrollo, mostrar token en consola
+        token = request.form.get('csrf_token')
+        print(f"✓ CSRF Token recibido en servidor: {token[:20]}...")
+        print(f"✓ Email: {request.form.get('email')}")
+        
+        email = request.form.get('email')
+        password = request.form.get('password')
         
         # Validar credenciales usando el servicio
         user_data = AuthService.validate_credentials(email, password)

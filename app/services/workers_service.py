@@ -12,6 +12,7 @@ class WorkersService:
     WORKERS = {
         'worker@prontoa.test': {
             'name': 'Trabajador',
+            'empresa': 'Panedería de Alexis TEST',
             'email': 'worker@prontoa.test',
             'phone': '+57 300 123 4567',
             'status': 'Activo',
@@ -23,6 +24,7 @@ class WorkersService:
         },
         'admin@prontoa.test': {
             'name': 'Administrador',
+            'empresa': 'Panedería de Alexis TEST',
             'email': 'admin@prontoa.test',
             'phone': '+57 300 987 6543',
             'status': 'Activo',
