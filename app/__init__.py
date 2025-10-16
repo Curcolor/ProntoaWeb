@@ -18,6 +18,9 @@ def create_app(config_name='development'):
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
     
+    # Configurar SECRET_KEY para sesiones -- recordar mandarlo a .env en producción
+    app.secret_key = os.environ.get('SECRET_KEY', 'prontoa_dev_secret_2024')
+    
     # Inicializar extensiones
     init_extensions(app)
     
