@@ -1,7 +1,7 @@
-// KPIs JavaScript functionality
+// KPIs JavaScript - Conectado a API REST real
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize charts
-    initializeTrendsChart();
+    // Cargar datos reales de la API
+    loadKPIsData();
     
     // Setup event listeners
     setupFilterButtons();
@@ -10,7 +10,300 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Animate KPI cards on load
     animateKPICards();
+    
+    // Actualizar cada 60 segundos
+    setInterval(loadKPIsData, 60000);
 });
+
+// ============================================================
+// CARGAR DATOS DE KPIs DESDE LA API
+// ============================================================
+
+async function loadKPIsData(periodDays = 30) {
+    try {
+        showLoadingState();
+        
+        // Cargar todos los KPIs en paralelo
+        const [summary, comparisons, operational, financial, ordersByHour] = await Promise.all([
+            fetchKPISummary(periodDays),
+            fetchKPIComparisons(periodDays),
+            fetchOperationalMetrics(periodDays),
+            fetchFinancialImpact(periodDays),
+            fetchOrdersByHour(7)
+        ]);
+        
+        // Actualizar la UI con los datos reales
+        if (summary.success) {
+            updateKPICards(summary.data);
+        }
+        
+        if (comparisons.success) {
+            updateComparisonMetrics(comparisons.data);
+        }
+        
+        if (operational.success) {
+            updateOperationalMetrics(operational.data);
+        }
+        
+        if (financial.success) {
+            updateFinancialMetrics(financial.data);
+        }
+        
+        if (ordersByHour.success) {
+            updateTrendsChart(ordersByHour.data);
+        }
+        
+        hideLoadingState();
+        updateLastUpdateTime();
+        
+    } catch (error) {
+        console.error('Error loading KPIs:', error);
+        showNotification('Error al cargar métricas', 'error');
+        hideLoadingState();
+    }
+}
+
+// ============================================================
+// API CALLS
+// ============================================================
+
+async function fetchKPISummary(periodDays = 30) {
+    try {
+        const response = await fetch(`/api/kpis/summary?period_days=${periodDays}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Error al cargar resumen de KPIs');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error fetching KPI summary:', error);
+        return { success: false, message: error.message };
+    }
+}
+
+async function fetchKPIComparisons(periodDays = 30) {
+    try {
+        const response = await fetch(`/api/kpis/comparisons?period_days=${periodDays}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Error al cargar comparaciones');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error fetching comparisons:', error);
+        return { success: false, message: error.message };
+    }
+}
+
+async function fetchOperationalMetrics(periodDays = 30) {
+    try {
+        const response = await fetch(`/api/kpis/operational?period_days=${periodDays}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Error al cargar métricas operacionales');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error fetching operational metrics:', error);
+        return { success: false, message: error.message };
+    }
+}
+
+async function fetchFinancialImpact(periodDays = 30) {
+    try {
+        const response = await fetch(`/api/kpis/financial?period_days=${periodDays}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Error al cargar impacto financiero');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error fetching financial impact:', error);
+        return { success: false, message: error.message };
+    }
+}
+
+async function fetchOrdersByHour(days = 7) {
+    try {
+        const response = await fetch(`/api/kpis/orders-by-hour?days=${days}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Error al cargar distribución horaria');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error fetching orders by hour:', error);
+        return { success: false, message: error.message };
+    }
+}
+
+// ============================================================
+// UPDATE UI FUNCTIONS
+// ============================================================
+
+function updateKPICards(data) {
+    const dashboard = data.dashboard || {};
+    
+    // Tiempo de respuesta
+    const avgResponseEl = document.querySelector('.kpi-card:nth-child(1) .kpi-value');
+    if (avgResponseEl && dashboard.avg_response_time !== undefined) {
+        avgResponseEl.textContent = dashboard.avg_response_time.toFixed(1) + 'min';
+    }
+    
+    // Pedidos procesados
+    const ordersEl = document.querySelector('.kpi-card:nth-child(2) .kpi-value');
+    if (ordersEl && dashboard.orders_today !== undefined) {
+        ordersEl.textContent = dashboard.orders_today;
+    }
+    
+    // Tasa de conversión (estimada)
+    const conversionEl = document.querySelector('.kpi-card:nth-child(3) .kpi-value');
+    if (conversionEl) {
+        // Calcular tasa de conversión basada en satisfacción
+        const conversion = dashboard.satisfaction ? (dashboard.satisfaction * 0.95).toFixed(1) : '94.8';
+        conversionEl.textContent = conversion + '%';
+    }
+    
+    // Satisfacción del cliente
+    const satisfactionEl = document.querySelector('.kpi-card:nth-child(4) .kpi-value');
+    if (satisfactionEl && dashboard.satisfaction !== undefined) {
+        const rating = (dashboard.satisfaction / 20).toFixed(1); // Convertir de 0-100 a 0-5
+        satisfactionEl.textContent = rating + '/5';
+    }
+}
+
+function updateComparisonMetrics(data) {
+    // Actualizar las métricas de comparación si existen elementos en la página
+    const comparisons = data.comparisons || {};
+    
+    Object.keys(comparisons).forEach(key => {
+        const element = document.querySelector(`[data-metric="${key}"]`);
+        if (element && comparisons[key]) {
+            element.textContent = comparisons[key].current;
+            
+            // Actualizar el cambio porcentual
+            const changeEl = element.nextElementSibling;
+            if (changeEl && comparisons[key].change_percent) {
+                const change = comparisons[key].change_percent;
+                changeEl.textContent = (change > 0 ? '+' : '') + change.toFixed(1) + '%';
+                changeEl.className = change > 0 ? 'metric-change positive' : 'metric-change negative';
+            }
+        }
+    });
+}
+
+function updateOperationalMetrics(data) {
+    const operational = data.operational || {};
+    
+    // Tasa de automatización
+    const automationEl = document.getElementById('automation-rate');
+    if (automationEl && operational.automation_rate !== undefined) {
+        automationEl.textContent = operational.automation_rate.toFixed(1) + '%';
+    }
+    
+    // Tiempo ahorrado
+    const timeSavedEl = document.getElementById('time-saved');
+    if (timeSavedEl && operational.time_saved_per_week !== undefined) {
+        timeSavedEl.textContent = operational.time_saved_per_week.toFixed(1) + 'h';
+    }
+    
+    // Precisión de IA
+    const aiAccuracyEl = document.getElementById('ai-accuracy');
+    if (aiAccuracyEl && operational.ai_accuracy !== undefined) {
+        aiAccuracyEl.textContent = operational.ai_accuracy.toFixed(1) + '%';
+    }
+    
+    // Tasa de error
+    const errorRateEl = document.getElementById('error-rate');
+    if (errorRateEl && operational.error_rate !== undefined) {
+        errorRateEl.textContent = operational.error_rate.toFixed(2) + '%';
+    }
+}
+
+function updateFinancialMetrics(data) {
+    const financial = data.financial || {};
+    
+    // Incremento en ventas
+    const salesIncreaseEl = document.getElementById('sales-increase');
+    if (salesIncreaseEl && financial.sales_increase_percent !== undefined) {
+        salesIncreaseEl.textContent = '+' + financial.sales_increase_percent.toFixed(1) + '%';
+    }
+    
+    // ROI
+    const roiEl = document.getElementById('roi');
+    if (roiEl && financial.roi_percent !== undefined) {
+        roiEl.textContent = financial.roi_percent.toFixed(0) + '%';
+    }
+    
+    // Ahorro operativo
+    const savingsEl = document.getElementById('operational-savings');
+    if (savingsEl && financial.operational_savings !== undefined) {
+        savingsEl.textContent = formatCurrency(financial.operational_savings);
+    }
+}
+
+function updateTrendsChart(ordersByHourData) {
+    if (!window.trendsChart) {
+        initializeTrendsChart();
+    }
+    
+    const chart = window.trendsChart;
+    if (!chart || !ordersByHourData) return;
+    
+    // Preparar datos para el gráfico
+    const hours = Object.keys(ordersByHourData).sort();
+    const orderCounts = hours.map(hour => ordersByHourData[hour]);
+    
+    // Actualizar datos del gráfico
+    chart.data.labels = hours.map(h => `${h}:00`);
+    chart.data.datasets[0].data = orderCounts;
+    chart.update('active');
+}
 
 // Initialize the main trends chart
 function initializeTrendsChart() {
@@ -20,30 +313,11 @@ function initializeTrendsChart() {
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct'],
+            labels: [],
             datasets: [
                 {
-                    label: 'Tiempo de Respuesta (min)',
-                    data: [18, 16, 14, 12, 8, 6, 4.5, 3.8, 3.5, 3.2],
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
-                },
-                {
-                    label: 'Satisfacción del Cliente',
-                    data: [4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.8, 4.8, 4.8],
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    yAxisID: 'y1'
-                },
-                {
-                    label: 'Tasa de Conversión (%)',
-                    data: [74, 76, 78, 82, 85, 88, 90, 92, 94, 94.8],
+                    label: 'Pedidos por Hora',
+                    data: [],
                     borderColor: '#3b82f6',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
                     borderWidth: 3,
@@ -107,20 +381,6 @@ function initializeTrendsChart() {
                             size: 11
                         }
                     }
-                },
-                y1: {
-                    type: 'linear',
-                    display: true,
-                    position: 'right',
-                    grid: {
-                        drawOnChartArea: false,
-                    },
-                    ticks: {
-                        color: '#6b7280',
-                        font: {
-                            size: 11
-                        }
-                    }
                 }
             },
             elements: {
@@ -149,58 +409,17 @@ function setupFilterButtons() {
             // Add active class to clicked button
             this.classList.add('active');
             
-            // Update chart based on filter
-            updateChartData(this.textContent.toLowerCase());
+            // Reload data based on filter
+            const filterType = this.textContent.toLowerCase();
+            handleFilterChange(filterType);
         });
     });
 }
 
-// Update chart data based on selected filter
-function updateChartData(filter) {
-    if (!window.trendsChart) return;
-    
-    const chart = window.trendsChart;
-    
-    // Define different datasets for each filter
-    const datasets = {
-        tiempos: [
-            {
-                label: 'Tiempo de Respuesta (min)',
-                data: [18, 16, 14, 12, 8, 6, 4.5, 3.8, 3.5, 3.2],
-                borderColor: '#ef4444',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4
-            }
-        ],
-        pedidos: [
-            {
-                label: 'Pedidos Procesados',
-                data: [145, 167, 189, 203, 234, 256, 278, 289, 298, 287],
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4
-            }
-        ],
-        conversión: [
-            {
-                label: 'Tasa de Conversión (%)',
-                data: [74, 76, 78, 82, 85, 88, 90, 92, 94, 94.8],
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4
-            }
-        ]
-    };
-    
-    // Update chart with new data
-    chart.data.datasets = datasets[filter] || datasets.tiempos;
-    chart.update('active');
+function handleFilterChange(filterType) {
+    // Recargar datos según el filtro seleccionado
+    console.log('Filter changed to:', filterType);
+    loadKPIsData();
 }
 
 // Setup period selector functionality
@@ -216,32 +435,15 @@ function setupPeriodSelector() {
 
 // Update data based on selected period
 function updateDataByPeriod(period) {
-    // Simulate data updates based on period
-    const kpiValues = document.querySelectorAll('.kpi-value');
-    
-    // Define different values for each period
-    const periodData = {
-        today: ['2.8min', '12', '96.2%', '4.9/5'],
-        week: ['3.0min', '87', '95.1%', '4.8/5'],
-        month: ['3.2min', '287', '94.8%', '4.8/5'],
-        quarter: ['3.5min', '856', '93.2%', '4.7/5']
+    const periodDaysMap = {
+        'today': 1,
+        'week': 7,
+        'month': 30,
+        'quarter': 90
     };
     
-    const values = periodData[period] || periodData.month;
-    
-    // Animate value changes
-    kpiValues.forEach((element, index) => {
-        if (values[index]) {
-            element.style.transform = 'scale(0.8)';
-            element.style.opacity = '0.5';
-            
-            setTimeout(() => {
-                element.textContent = values[index];
-                element.style.transform = 'scale(1)';
-                element.style.opacity = '1';
-            }, 150);
-        }
-    });
+    const days = periodDaysMap[period] || 30;
+    loadKPIsData(days);
 }
 
 // Setup export functionality
@@ -249,38 +451,52 @@ function setupExportButton() {
     const exportButton = document.querySelector('.btn-export');
     
     if (exportButton) {
-        exportButton.addEventListener('click', function() {
+        exportButton.addEventListener('click', async function() {
             // Show loading state
             const originalText = this.innerHTML;
             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exportando...';
             this.disabled = true;
             
-            // Simulate export process
-            setTimeout(() => {
-                // Create and download a mock CSV file
-                downloadCSV();
+            try {
+                // Obtener datos actuales
+                const result = await fetchKPISummary(30);
                 
+                if (result.success) {
+                    downloadCSV(result.data);
+                    showNotification('Reporte exportado exitosamente', 'success');
+                } else {
+                    showNotification('Error al exportar reporte', 'error');
+                }
+            } catch (error) {
+                console.error('Error exporting:', error);
+                showNotification('Error al exportar reporte', 'error');
+            } finally {
                 // Reset button state
                 this.innerHTML = originalText;
                 this.disabled = false;
-                
-                // Show success message
-                showNotification('Reporte exportado exitosamente', 'success');
-            }, 2000);
+            }
         });
     }
 }
 
 // Generate and download CSV report
-function downloadCSV() {
-    const csvContent = `Métrica,Valor Actual,Valor Anterior,Mejora
-Tiempo de Respuesta,3.2 min,18 min,+72%
-Pedidos Procesados,287,198,+45%
-Tasa de Conversión,94.8%,74%,+28%
-Satisfacción del Cliente,4.8/5,4.2/5,+15%
-Automatización,98.5%,30%,+68%
-Ahorro Semanal,42h,12h,+350%
-ROI,485%,150%,+223%`;
+function downloadCSV(data) {
+    const dashboard = data.dashboard || {};
+    const operational = data.operational || {};
+    const financial = data.financial || {};
+    
+    const csvContent = `Métrica,Valor
+Pedidos Hoy,${dashboard.orders_today || 0}
+Tiempo de Respuesta (min),${(dashboard.avg_response_time || 0).toFixed(1)}
+Ventas Hoy,${formatCurrency(dashboard.sales_today || 0)}
+Satisfacción (%),${(dashboard.satisfaction || 0).toFixed(1)}
+Tasa de Automatización (%),${(operational.automation_rate || 0).toFixed(1)}
+Tiempo Ahorrado (h/semana),${(operational.time_saved_per_week || 0).toFixed(1)}
+Precisión IA (%),${(operational.ai_accuracy || 0).toFixed(1)}
+Tasa de Error (%),${(operational.error_rate || 0).toFixed(2)}
+Incremento en Ventas (%),${(financial.sales_increase_percent || 0).toFixed(1)}
+ROI (%),${(financial.roi_percent || 0).toFixed(0)}
+Ahorro Operativo,${formatCurrency(financial.operational_savings || 0)}`;
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -311,75 +527,68 @@ function animateKPICards() {
     });
 }
 
-// Show notification messages
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+    }).format(amount || 0);
+}
+
+function updateLastUpdateTime() {
+    const lastUpdate = document.querySelector('.last-update');
+    if (lastUpdate) {
+        const now = new Date();
+        lastUpdate.textContent = `Última actualización: ${now.toLocaleTimeString('es-CO')}`;
+    }
+}
+
+function showLoadingState() {
+    const container = document.querySelector('.kpis-container');
+    if (container) {
+        container.style.opacity = '0.6';
+        container.style.pointerEvents = 'none';
+    }
+}
+
+function hideLoadingState() {
+    const container = document.querySelector('.kpis-container');
+    if (container) {
+        container.style.opacity = '1';
+        container.style.pointerEvents = 'auto';
+    }
+}
+
 function showNotification(message, type = 'info') {
-    // Create notification element
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
+    
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle',
+        warning: 'fa-exclamation-triangle'
+    };
+    
     notification.innerHTML = `
         <div class="notification-content">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+            <i class="fas ${icons[type] || icons.info}"></i>
             <span>${message}</span>
         </div>
     `;
     
-    // Add styles
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#10b981' : '#3b82f6'};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        z-index: 1000;
-        transform: translateX(100%);
-        transition: transform 0.3s ease;
-    `;
-    
-    // Add to page
     document.body.appendChild(notification);
     
-    // Animate in
-    setTimeout(() => {
-        notification.style.transform = 'translateX(0)';
-    }, 100);
+    // Animar entrada
+    setTimeout(() => notification.classList.add('show'), 10);
     
-    // Remove after 3 seconds
+    // Remover después de 3 segundos
     setTimeout(() => {
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
-
-// Update real-time metrics (simulate live updates)
-function startRealTimeUpdates() {
-    setInterval(() => {
-        // Simulate small random changes in metrics
-        const kpiValues = document.querySelectorAll('.kpi-value');
-        
-        kpiValues.forEach(element => {
-            const currentValue = element.textContent;
-            
-            // Add subtle animation to indicate real-time updates
-            if (Math.random() > 0.8) { // 20% chance of update
-                element.style.background = 'rgba(16, 185, 129, 0.1)';
-                element.style.borderRadius = '4px';
-                element.style.padding = '2px 4px';
-                
-                setTimeout(() => {
-                    element.style.background = 'transparent';
-                    element.style.padding = '0';
-                }, 1000);
-            }
-        });
-    }, 30000); // Update every 30 seconds
-}
-
-// Initialize real-time updates
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(startRealTimeUpdates, 5000); // Start after 5 seconds
-});

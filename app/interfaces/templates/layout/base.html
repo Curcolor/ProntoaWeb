@@ -30,9 +30,10 @@
             <a class="navbar-brand" href="{{ url_for('viewpages.home') }}">
                 <i class="fab fa-whatsapp"></i> ProntoaWeb
             </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Alternar navegación" title="Alternar navegación">
+                <span class="navbar-toggler-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Alternar navegación</span>
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -44,13 +45,27 @@
                         <a class="nav-link" href="{{ url_for('viewpages.dashboard') }}">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('viewpages.perfil') }}">Perfil</a>
+                        <a class="nav-link" href="{{ url_for('viewpages.profile') }}">Perfil</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
     {% endblock %}
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
     <!-- Contenido principal -->
     {% block content %}

@@ -95,14 +95,14 @@
                             <div class="toggle-item">
                                 <span>Mostrar solo pedidos pendientes</span>
                                 <label class="toggle">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" id="filterPending" aria-label="Mostrar solo pedidos pendientes" checked>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
                             <div class="toggle-item">
                                 <span>Ocultar pedidos cancelados</span>
                                 <label class="toggle">
-                                    <input type="checkbox">
+                                    <input type="checkbox" id="hideCancelled" aria-label="Ocultar pedidos cancelados">
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -132,7 +132,7 @@
                                     <span>Nuevos pedidos</span>
                                 </div>
                                 <label class="toggle">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" id="notifyNewOrders" aria-label="Notificaciones de nuevos pedidos" checked>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -142,7 +142,7 @@
                                     <span>Recordatorios de entrega</span>
                                 </div>
                                 <label class="toggle">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" id="notifyDelivery" aria-label="Notificaciones de recordatorios de entrega" checked>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -152,7 +152,7 @@
                                     <span>Pedidos urgentes</span>
                                 </div>
                                 <label class="toggle">
-                                    <input type="checkbox">
+                                    <input type="checkbox" id="notifyUrgent" aria-label="Notificaciones de pedidos urgentes">
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -198,12 +198,12 @@
                         <label class="setting-label">Horario de atención</label>
                         <div class="time-range">
                             <div class="time-input">
-                                <label>Apertura</label>
-                                <input type="time" value="08:00" class="form-control">
+                                <label for="openingTime">Apertura</label>
+                                <input type="time" id="openingTime" value="08:00" class="form-control">
                             </div>
                             <div class="time-input">
-                                <label>Cierre</label>
-                                <input type="time" value="20:00" class="form-control">
+                                <label for="closingTime">Cierre</label>
+                                <input type="time" id="closingTime" value="20:00" class="form-control">
                             </div>
                         </div>
                     </div>
@@ -214,14 +214,14 @@
                             <div class="toggle-item">
                                 <span>Activar delivery</span>
                                 <label class="toggle">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" id="enableDelivery" aria-label="Activar servicio de delivery" checked>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
                             <div class="toggle-item">
                                 <span>Recoger en tienda</span>
                                 <label class="toggle">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" id="enablePickup" aria-label="Activar opción de recoger en tienda" checked>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -248,21 +248,21 @@
                             <div class="toggle-item">
                                 <span>Confirmación de pedido</span>
                                 <label class="toggle">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" id="autoConfirmOrder" aria-label="Respuesta automática de confirmación de pedido" checked>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
                             <div class="toggle-item">
                                 <span>Estado de preparación</span>
                                 <label class="toggle">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" id="autoPreparationStatus" aria-label="Respuesta automática de estado de preparación" checked>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
                             <div class="toggle-item">
                                 <span>Pedido listo</span>
                                 <label class="toggle">
-                                    <input type="checkbox">
+                                    <input type="checkbox" id="autoOrderReady" aria-label="Respuesta automática de pedido listo">
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -275,8 +275,8 @@
                             <div class="template-item">
                                 <strong>Pedido recibido:</strong>
                                 <p>"¡Hola! Tu pedido ha sido recibido y estará listo próximamente. Te notificaremos cuando esté listo. (Brindado por alegrínm)"</p>
-                                <button class="btn-edit">
-                                    <i class="fas fa-edit"></i>
+                                <button class="btn-edit" title="Editar plantilla" aria-label="Editar plantilla">
+                                    <i class="fas fa-edit" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </div>

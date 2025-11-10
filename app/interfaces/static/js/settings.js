@@ -1,16 +1,186 @@
-// Settings JavaScript
+// Settings JavaScript - Conectado a API REST real
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Settings page loaded');
+    console.log('Settings page loaded - Using real API');
+    
+    // Cargar configuraciones del servidor
+    loadSettings();
     
     // Inicializar configuraciones
     initializeSettings();
     
     // Configurar event listeners
     setupEventListeners();
-    
-    // Cargar configuraciones guardadas
-    loadSavedSettings();
 });
+
+// ============================================================
+// CARGAR CONFIGURACIONES DESDE LA API
+// ============================================================
+
+async function loadSettings() {
+    try {
+        showLoadingState();
+        
+        // Cargar usuario y configuraciones del negocio
+        const result = await fetchCurrentUser();
+        
+        if (result.success) {
+            updateBusinessSettings(result.business);
+            updateUserSettings(result.user);
+        }
+        
+        hideLoadingState();
+        
+    } catch (error) {
+        console.error('Error loading settings:', error);
+        showNotification('Error al cargar configuraciones', 'error');
+        hideLoadingState();
+    }
+}
+
+// ============================================================
+// API CALLS
+// ============================================================
+
+async function fetchCurrentUser() {
+    try {
+        const response = await fetch('/api/auth/me', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Error al cargar configuraciones');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error fetching user:', error);
+        return { success: false, message: error.message };
+    }
+}
+
+async function updateBusinessSettings(settingsData) {
+    try {
+        const response = await fetch('/api/business/settings', {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settingsData)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Error al actualizar configuraciones');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error updating business settings:', error);
+        return { success: false, message: error.message };
+    }
+}
+
+// ============================================================
+// UPDATE UI FUNCTIONS
+// ============================================================
+
+function updateBusinessSettings(business) {
+    if (!business) return;
+    
+    // Nombre del negocio
+    const businessNameInput = document.getElementById('business-name');
+    if (businessNameInput && business.name) {
+        businessNameInput.value = business.name;
+    }
+    
+    // Tipo de negocio
+    const businessTypeSelect = document.getElementById('business-type');
+    if (businessTypeSelect && business.business_type) {
+        businessTypeSelect.value = business.business_type;
+    }
+    
+    // Ubicación
+    const locationInput = document.getElementById('location');
+    if (locationInput && business.location) {
+        locationInput.value = business.location;
+    }
+    
+    // Horarios
+    const openTimeInput = document.getElementById('open-time');
+    if (openTimeInput && business.opening_time) {
+        openTimeInput.value = business.opening_time;
+    }
+    
+    const closeTimeInput = document.getElementById('close-time');
+    if (closeTimeInput && business.closing_time) {
+        closeTimeInput.value = business.closing_time;
+    }
+    
+    // Delivery
+    const deliveryEnabledToggle = document.getElementById('delivery-enabled');
+    if (deliveryEnabledToggle) {
+        deliveryEnabledToggle.checked = business.delivery_enabled || false;
+    }
+    
+    // Radio de entrega
+    const deliveryRadiusInput = document.getElementById('delivery-radius');
+    if (deliveryRadiusInput && business.delivery_radius_km) {
+        deliveryRadiusInput.value = business.delivery_radius_km;
+    }
+    
+    // Tarifa de delivery
+    const deliveryFeeInput = document.getElementById('delivery-fee');
+    if (deliveryFeeInput && business.delivery_fee) {
+        deliveryFeeInput.value = business.delivery_fee;
+    }
+    
+    // Notificaciones
+    const notificationsToggle = document.getElementById('notifications-enabled');
+    if (notificationsToggle) {
+        notificationsToggle.checked = business.notifications_enabled !== false;
+    }
+    
+    // WhatsApp
+    const whatsappToggle = document.getElementById('whatsapp-enabled');
+    if (whatsappToggle) {
+        whatsappToggle.checked = business.whatsapp_enabled !== false;
+    }
+}
+
+
+function updateUserSettings(user) {
+    if (!user) return;
+    
+    // Email
+    const emailInput = document.getElementById('user-email');
+    if (emailInput && user.email) {
+        emailInput.value = user.email;
+    }
+    
+    // Nombre completo
+    const fullNameInput = document.getElementById('user-full-name');
+    if (fullNameInput && user.full_name) {
+        fullNameInput.value = user.full_name;
+    }
+    
+    // Teléfono
+    const phoneInput = document.getElementById('user-phone');
+    if (phoneInput && user.phone) {
+        phoneInput.value = user.phone;
+    }
+}
+
+// ============================================================
+// INITIALIZE SETTINGS
+// ============================================================
 
 function initializeSettings() {
     // Inicializar toggles
@@ -34,47 +204,51 @@ function initializeSettings() {
 
 function setupEventListeners() {
     // Botón de guardar cambios
-    const saveBtn = document.querySelector('.btn-primary');
+    const saveBtn = document.querySelector('.btn-save-settings');
     if (saveBtn) {
         saveBtn.addEventListener('click', saveAllSettings);
     }
     
     // Botón de restaurar valores
-    const resetBtn = document.querySelector('.btn-secondary');
+    const resetBtn = document.querySelector('.btn-reset-settings');
     if (resetBtn) {
         resetBtn.addEventListener('click', resetToDefaults);
     }
     
-    // Botón de editar plantilla
-    const editBtns = document.querySelectorAll('.btn-edit');
+    // Botones de editar plantilla
+    const editBtns = document.querySelectorAll('.btn-edit-template');
     editBtns.forEach(btn => {
         btn.addEventListener('click', editTemplate);
     });
+    
+    // Form de cambio de contraseña
+    const passwordForm = document.getElementById('change-password-form');
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', handleChangePassword);
+    }
 }
+
+// ============================================================
+// EVENT HANDLERS
+// ============================================================
 
 function handleToggleChange(e) {
     const toggle = e.target;
-    const settingName = toggle.closest('.toggle-item').querySelector('span').textContent;
+    const settingName = toggle.id || toggle.name;
     
     console.log(`Toggle changed: ${settingName} = ${toggle.checked}`);
     
     // Mostrar feedback visual
-    showSettingFeedback(toggle.closest('.toggle-item'), toggle.checked);
-    
-    // Guardar en localStorage temporalmente
-    const settings = getLocalSettings();
-    settings.toggles = settings.toggles || {};
-    settings.toggles[settingName] = toggle.checked;
-    saveLocalSettings(settings);
+    showSettingFeedback(toggle.closest('.setting-item') || toggle.closest('.toggle-item'), toggle.checked);
 }
 
 function handlePaginationChange(e) {
-    const btn = e.target;
+    const btn = e.currentTarget;
     const container = btn.closest('.pagination-options');
     const currentActive = container.querySelector('.pagination-btn.active');
     
     // Remover clase active del botón anterior
-    if (currentActive) {
+    if (currentActive && currentActive !== btn) {
         currentActive.classList.remove('active');
     }
     
@@ -82,11 +256,6 @@ function handlePaginationChange(e) {
     btn.classList.add('active');
     
     console.log(`Pagination changed: ${btn.textContent} items per page`);
-    
-    // Guardar configuración
-    const settings = getLocalSettings();
-    settings.pagination = btn.textContent;
-    saveLocalSettings(settings);
 }
 
 function handleSelectChange(e) {
@@ -96,22 +265,73 @@ function handleSelectChange(e) {
     console.log(`Select changed: ${settingName} = ${select.value}`);
     
     // Mostrar feedback visual
-    showSettingFeedback(select.closest('.setting-group'), true);
+    showSettingFeedback(select.closest('.setting-group') || select.closest('.form-group'), true);
+}
+
+async function handleChangePassword(e) {
+    e.preventDefault();
     
-    // Guardar configuración
-    const settings = getLocalSettings();
-    settings.selects = settings.selects || {};
-    settings.selects[settingName] = select.value;
-    saveLocalSettings(settings);
+    const form = e.target;
+    const formData = new FormData(form);
+    
+    const oldPassword = formData.get('old_password');
+    const newPassword = formData.get('new_password');
+    const confirmPassword = formData.get('confirm_password');
+    
+    // Validar
+    if (!oldPassword || !newPassword || !confirmPassword) {
+        showNotification('Por favor completa todos los campos', 'error');
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        showNotification('Las contraseñas no coinciden', 'error');
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        showNotification('La contraseña debe tener al menos 6 caracteres', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/auth/change-password', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                old_password: oldPassword,
+                new_password: newPassword
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Error al cambiar contraseña');
+        }
+        
+        showNotification('Contraseña cambiada correctamente', 'success');
+        form.reset();
+        
+    } catch (error) {
+        console.error('Error changing password:', error);
+        showNotification(error.message, 'error');
+    }
 }
 
 function showSettingFeedback(element, isEnabled) {
+    if (!element) return;
+    
     // Agregar clase de feedback temporal
     element.classList.add('setting-changed');
     
     // Cambiar color temporalmente
     const originalBackground = element.style.backgroundColor;
     element.style.backgroundColor = isEnabled ? '#d4edda' : '#f8d7da';
+    element.style.transition = 'background-color 0.3s';
     
     setTimeout(() => {
         element.classList.remove('setting-changed');
@@ -119,54 +339,63 @@ function showSettingFeedback(element, isEnabled) {
     }, 1000);
 }
 
-function saveAllSettings() {
-    const saveBtn = document.querySelector('.btn-primary');
+async function saveAllSettings() {
+    const saveBtn = document.querySelector('.btn-save-settings');
+    if (!saveBtn) return;
+    
     const originalText = saveBtn.innerHTML;
     
     // Mostrar estado de carga
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
     saveBtn.disabled = true;
     
-    // Recopilar todas las configuraciones
-    const settings = collectAllSettings();
-    
-    // Simular guardado en servidor
-    setTimeout(() => {
-        console.log('Settings saved:', settings);
+    try {
+        // Recopilar todas las configuraciones
+        const settings = collectAllSettings();
         
-        // Mostrar éxito
-        saveBtn.innerHTML = '<i class="fas fa-check"></i> Guardado';
-        saveBtn.classList.add('btn-success');
-        saveBtn.classList.remove('btn-primary');
+        // Guardar en el servidor
+        const result = await updateBusinessSettings(settings);
         
-        // Restaurar estado original después de 2 segundos
-        setTimeout(() => {
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
-            saveBtn.classList.add('btn-primary');
-            saveBtn.classList.remove('btn-success');
-        }, 2000);
+        if (result.success) {
+            showNotification('Configuraciones guardadas correctamente', 'success');
+            
+            // Mostrar éxito
+            saveBtn.innerHTML = '<i class="fas fa-check"></i> Guardado';
+            saveBtn.classList.add('btn-success');
+            saveBtn.classList.remove('btn-primary');
+            
+            // Restaurar estado original después de 2 segundos
+            setTimeout(() => {
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+                saveBtn.classList.add('btn-primary');
+                saveBtn.classList.remove('btn-success');
+            }, 2000);
+        } else {
+            throw new Error(result.message || 'Error al guardar configuraciones');
+        }
         
-        // Guardar en localStorage
-        saveLocalSettings(settings);
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        showNotification(error.message, 'error');
         
-    }, 1500);
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    }
 }
 
 function resetToDefaults() {
     if (confirm('¿Estás seguro de que quieres restaurar todas las configuraciones a sus valores predeterminados?')) {
-        // Limpiar localStorage
-        localStorage.removeItem('prontoaSettings');
-        
-        // Recargar página para aplicar defaults
-        window.location.reload();
+        // Recargar configuraciones del servidor
+        loadSettings();
+        showNotification('Configuraciones restauradas', 'info');
     }
 }
 
 function editTemplate(e) {
-    const btn = e.target.closest('.btn-edit');
+    const btn = e.target.closest('.btn-edit-template');
     const templateItem = btn.closest('.template-item');
-    const textElement = templateItem.querySelector('p');
+    const textElement = templateItem.querySelector('.template-text');
     const currentText = textElement.textContent;
     
     // Crear textarea para edición
@@ -182,12 +411,13 @@ function editTemplate(e) {
     // Cambiar botón a guardar
     btn.innerHTML = '<i class="fas fa-save"></i>';
     btn.classList.add('btn-save');
+    btn.classList.remove('btn-edit-template');
     
     // Enfocar textarea
     textarea.focus();
     
     // Agregar event listener para guardar
-    btn.addEventListener('click', function saveTemplate() {
+    const saveHandler = function() {
         const newText = textarea.value.trim();
         
         if (newText) {
@@ -198,104 +428,106 @@ function editTemplate(e) {
             // Restaurar botón
             btn.innerHTML = '<i class="fas fa-edit"></i>';
             btn.classList.remove('btn-save');
+            btn.classList.add('btn-edit-template');
             
             // Remover event listener
-            btn.removeEventListener('click', saveTemplate);
+            btn.removeEventListener('click', saveHandler);
+            btn.addEventListener('click', editTemplate);
             
+            showNotification('Plantilla actualizada', 'success');
             console.log('Template updated:', newText);
-        }
-    });
-}
-
-function collectAllSettings() {
-    const settings = {
-        toggles: {},
-        selects: {},
-        pagination: document.querySelector('.pagination-btn.active')?.textContent || '10',
-        timeSettings: {
-            openTime: document.querySelector('input[type="time"]:first-of-type')?.value || '08:00',
-            closeTime: document.querySelector('input[type="time"]:last-of-type')?.value || '20:00'
         }
     };
     
-    // Recopilar toggles
-    document.querySelectorAll('.toggle input[type="checkbox"]').forEach(toggle => {
-        const label = toggle.closest('.toggle-item').querySelector('span').textContent;
-        settings.toggles[label] = toggle.checked;
+    btn.removeEventListener('click', editTemplate);
+    btn.addEventListener('click', saveHandler);
+}
+
+// ============================================================
+// COLLECT SETTINGS DATA
+// ============================================================
+
+function collectAllSettings() {
+    const settings = {
+        name: document.getElementById('business-name')?.value || '',
+        business_type: document.getElementById('business-type')?.value || '',
+        location: document.getElementById('location')?.value || '',
+        opening_time: document.getElementById('open-time')?.value || '',
+        closing_time: document.getElementById('close-time')?.value || '',
+        delivery_enabled: document.getElementById('delivery-enabled')?.checked || false,
+        delivery_radius_km: parseFloat(document.getElementById('delivery-radius')?.value) || 0,
+        delivery_fee: parseFloat(document.getElementById('delivery-fee')?.value) || 0,
+        notifications_enabled: document.getElementById('notifications-enabled')?.checked || false,
+        whatsapp_enabled: document.getElementById('whatsapp-enabled')?.checked || false
+    };
+    
+    // Recopilar otros toggles
+    const toggles = document.querySelectorAll('.toggle input[type="checkbox"]');
+    toggles.forEach(toggle => {
+        const id = toggle.id || toggle.name;
+        if (id && !settings.hasOwnProperty(id)) {
+            settings[id] = toggle.checked;
+        }
     });
     
     // Recopilar selects
-    document.querySelectorAll('.form-select').forEach(select => {
-        const name = select.id || select.name;
-        if (name) {
-            settings.selects[name] = select.value;
+    const selects = document.querySelectorAll('.form-select');
+    selects.forEach(select => {
+        const id = select.id || select.name;
+        if (id && !settings.hasOwnProperty(id)) {
+            settings[id] = select.value;
         }
     });
     
     return settings;
 }
 
-function loadSavedSettings() {
-    const settings = getLocalSettings();
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+
+function showLoadingState() {
+    const container = document.querySelector('.settings-container');
+    if (container) {
+        container.style.opacity = '0.6';
+        container.style.pointerEvents = 'none';
+    }
+}
+
+function hideLoadingState() {
+    const container = document.querySelector('.settings-container');
+    if (container) {
+        container.style.opacity = '1';
+        container.style.pointerEvents = 'auto';
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
     
-    if (settings) {
-        // Aplicar toggles guardados
-        if (settings.toggles) {
-            Object.entries(settings.toggles).forEach(([label, checked]) => {
-                const toggle = Array.from(document.querySelectorAll('.toggle-item')).find(item => 
-                    item.querySelector('span').textContent === label
-                )?.querySelector('input[type="checkbox"]');
-                
-                if (toggle) {
-                    toggle.checked = checked;
-                }
-            });
-        }
-        
-        // Aplicar selects guardados
-        if (settings.selects) {
-            Object.entries(settings.selects).forEach(([name, value]) => {
-                const select = document.getElementById(name) || document.querySelector(`[name="${name}"]`);
-                if (select) {
-                    select.value = value;
-                }
-            });
-        }
-        
-        // Aplicar paginación guardada
-        if (settings.pagination) {
-            const paginationBtn = Array.from(document.querySelectorAll('.pagination-btn')).find(btn => 
-                btn.textContent === settings.pagination
-            );
-            if (paginationBtn) {
-                document.querySelector('.pagination-btn.active')?.classList.remove('active');
-                paginationBtn.classList.add('active');
-            }
-        }
-        
-        // Aplicar configuraciones de tiempo
-        if (settings.timeSettings) {
-            const openTimeInput = document.querySelector('input[type="time"]:first-of-type');
-            const closeTimeInput = document.querySelector('input[type="time"]:last-of-type');
-            
-            if (openTimeInput) openTimeInput.value = settings.timeSettings.openTime;
-            if (closeTimeInput) closeTimeInput.value = settings.timeSettings.closeTime;
-        }
-    }
-}
-
-function getLocalSettings() {
-    try {
-        return JSON.parse(localStorage.getItem('prontoaSettings')) || {};
-    } catch (e) {
-        return {};
-    }
-}
-
-function saveLocalSettings(settings) {
-    try {
-        localStorage.setItem('prontoaSettings', JSON.stringify(settings));
-    } catch (e) {
-        console.error('Error saving settings to localStorage:', e);
-    }
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle',
+        warning: 'fa-exclamation-triangle'
+    };
+    
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas ${icons[type] || icons.info}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animar entrada
+    setTimeout(() => notification.classList.add('show'), 10);
+    
+    // Remover después de 3 segundos
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }

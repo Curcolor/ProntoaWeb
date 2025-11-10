@@ -1,27 +1,55 @@
 version: '3.8'
 
 services:
-  # Aplicación Flask en modo desarrollo
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: prontoa-db
+    environment:
+      POSTGRES_DB: prontoa_db
+      POSTGRES_USER: prontoa_user
+      POSTGRES_PASSWORD: prontoa_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - prontoa-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prontoa_user -d prontoa_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Aplicación Flask
   web:
     build: .
-    container_name: prontoa-web-dev
+    container_name: prontoa-web
     ports:
       - "5000:5000"
     environment:
-      - FLASK_ENV=development
+      - FLASK_CONFIG=development
       - FLASK_DEBUG=True
       - FLASK_HOST=0.0.0.0
       - FLASK_PORT=5000
-      - FLASK_CONFIG=development
+      - DATABASE_URL=postgresql://prontoa_user:prontoa_pass@db:5432/prontoa_db
+      - SECRET_KEY=dev-secret-key-change-in-production
     volumes:
       # Montar código fuente para desarrollo en vivo
       - .:/app
       - /app/__pycache__
-    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
-      - prontoa-network-dev
-    command: python run.py
+      - prontoa-network
+    restart: unless-stopped
 
 networks:
-  prontoa-network-dev:
+  prontoa-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

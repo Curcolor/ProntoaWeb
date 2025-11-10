@@ -15,6 +15,7 @@ WORKDIR /app
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
     gcc \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar archivos de requirements y instalar dependencias Python
@@ -24,8 +25,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar el código de la aplicación
 COPY . .
 
-# Crear directorio para la base de datos SQLite
-RUN mkdir -p instance
+# Copiar y dar permisos al entrypoint
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Crear directorio para uploads
+RUN mkdir -p uploads
 
 # Crear usuario no-root para ejecutar la aplicación
 RUN adduser --disabled-password --gecos '' appuser && \
@@ -35,5 +40,5 @@ USER appuser
 # Exponer el puerto
 EXPOSE 5000
 
-# Comando de inicio
-CMD ["python", "run.py"]
+# Comando de inicio con entrypoint
+ENTRYPOINT ["docker-entrypoint.sh"]
