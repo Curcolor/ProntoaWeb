@@ -63,11 +63,26 @@
             <div class="profile-card profile-info">
                 <div class="profile-header">
                     <div class="profile-avatar">
-                        <i class="fas fa-user-circle"></i>
+                        {% if worker.worker_type == 'planta' %}
+                            <i class="fas fa-utensils"></i>
+                        {% else %}
+                            <i class="fas fa-motorcycle"></i>
+                        {% endif %}
                     </div>
                     <div class="profile-details">
                         <h2 class="profile-name">{{ worker.name }}</h2>
                         <p class="profile-email">{{ worker.email }}</p>
+                        <div class="worker-type-badge">
+                            {% if worker.worker_type == 'planta' %}
+                                <span class="badge badge-success">
+                                    <i class="fas fa-fire"></i> Trabajador en Planta
+                                </span>
+                            {% else %}
+                                <span class="badge badge-info">
+                                    <i class="fas fa-truck"></i> Repartidor
+                                </span>
+                            {% endif %}
+                        </div>
                         <span class="profile-status status-active">
                             <i class="fas fa-circle"></i> {{ worker.status }}
                         </span>
@@ -75,6 +90,20 @@
                 </div>
                 
                 <div class="profile-info-grid">
+                    <div class="info-item">
+                        <label>Tipo de Trabajador</label>
+                        <p>
+                            {% if worker.worker_type == 'planta' %}
+                                <span class="badge badge-success">
+                                    <i class="fas fa-utensils"></i> En Planta (Preparación)
+                                </span>
+                            {% else %}
+                                <span class="badge badge-info">
+                                    <i class="fas fa-motorcycle"></i> Repartidor (Delivery)
+                                </span>
+                            {% endif %}
+                        </p>
+                    </div>
                     <div class="info-item">
                         <label>Empresa</label>
                         <p>{{ worker.empresa }}</p>
@@ -102,11 +131,21 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon primary">
-                        <i class="fas fa-tasks"></i>
+                        {% if worker.worker_type == 'planta' %}
+                            <i class="fas fa-fire"></i>
+                        {% else %}
+                            <i class="fas fa-motorcycle"></i>
+                        {% endif %}
                     </div>
                     <div class="stat-content">
                         <h3 class="stat-value">{{ worker.total_orders }}</h3>
-                        <p class="stat-label">Pedidos Totales</p>
+                        <p class="stat-label">
+                            {% if worker.worker_type == 'planta' %}
+                                Pedidos Preparados
+                            {% else %}
+                                Pedidos Entregados
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
 
@@ -126,7 +165,13 @@
                     </div>
                     <div class="stat-content">
                         <h3 class="stat-value">{{ worker.average_time }}</h3>
-                        <p class="stat-label">Tiempo Promedio</p>
+                        <p class="stat-label">
+                            {% if worker.worker_type == 'planta' %}
+                                Tiempo de Preparación
+                            {% else %}
+                                Tiempo de Entrega
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
 

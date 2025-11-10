@@ -41,9 +41,9 @@ class Config:
     TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
     TWILIO_WHATSAPP_NUMBER = os.environ.get('TWILIO_WHATSAPP_NUMBER')
     
-    # OpenAI for AI Agent
-    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
-    OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-4')
+    # Perplexity AI for AI Agent (compatible con OpenAI API)
+    PERPLEXITY_API_KEY = os.environ.get('PERPLEXITY_API_KEY')
+    PERPLEXITY_MODEL = os.environ.get('PERPLEXITY_MODEL', 'llama-3.1-sonar-small-128k-online')
     
     # Stripe Payment
     STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY')

@@ -1,6 +1,6 @@
 """
 Servicio de Inteligencia Artificial para procesamiento de pedidos.
-Utiliza OpenAI GPT para entender y procesar pedidos en lenguaje natural.
+Utiliza Perplexity AI (compatible con API de OpenAI) para entender y procesar pedidos.
 """
 import openai
 import json
@@ -15,8 +15,10 @@ class AIAgentService:
     """Servicio de agente IA para procesamiento de pedidos."""
     
     def __init__(self):
-        openai.api_key = current_app.config.get('OPENAI_API_KEY')
-        self.model = current_app.config.get('OPENAI_MODEL', 'gpt-4')
+        # Configurar para Perplexity AI
+        openai.api_key = current_app.config.get('PERPLEXITY_API_KEY')
+        openai.api_base = "https://api.perplexity.ai"
+        self.model = current_app.config.get('PERPLEXITY_MODEL', 'llama-3.1-sonar-small-128k-online')
     
     def process_message(self, customer_phone, message_text, business_id):
         """
@@ -56,41 +58,35 @@ class AIAgentService:
                 for p in products
             ])
             
-            # Crear prompt para GPT
-            system_prompt = f"""
-Eres un asistente virtual para un negocio en Barranquilla, Colombia. 
-Tu trabajo es ayudar a los clientes a realizar pedidos de forma amigable y eficiente.
+            # Crear prompt CORTO y RESTRICTIVO para ahorrar tokens
+            system_prompt = f"""Asistente de pedidos. Solo procesa pedidos del catálogo.
 
-CATÁLOGO DE PRODUCTOS DISPONIBLES:
+CATÁLOGO:
 {products_info}
 
-INSTRUCCIONES:
-1. Identifica la intención del cliente (hacer_pedido, consulta, queja, saludo, otro)
-2. Extrae los productos y cantidades solicitados
-3. Pregunta por datos faltantes (dirección si es delivery)
-4. Confirma el pedido antes de crearlo
-5. Sé amigable y usa emojis apropiadamente
+REGLAS ESTRICTAS:
+1. SOLO habla de productos del catálogo
+2. Respuestas CORTAS (máx 2 líneas)
+3. NO respondas temas fuera del negocio
+4. Si preguntan otra cosa: "Solo tomo pedidos"
 
-Responde en formato JSON con esta estructura:
+Responde JSON:
 {{
-    "intent": "hacer_pedido|consulta|queja|saludo|otro",
+    "intent": "hacer_pedido|consulta|saludo|otro",
     "confidence": 0.95,
     "entities": {{
-        "products": [
-            {{"name": "producto", "quantity": 1, "unit_price": 5000}}
-        ],
+        "products": [{{"name": "producto", "quantity": 1, "unit_price": 5000}}],
         "delivery_type": "delivery|pickup",
-        "address": "dirección si fue proporcionada",
-        "customer_name": "nombre si fue proporcionado"
+        "address": "direccion",
+        "customer_name": "nombre"
     }},
-    "response": "Respuesta amigable al cliente",
+    "response": "Respuesta CORTA",
     "needs_more_info": true/false,
-    "missing_info": ["direccion", "confirmacion"],
+    "missing_info": ["direccion"],
     "ready_to_create_order": true/false
-}}
-            """.strip()
+}}""".strip()
             
-            # Llamar a OpenAI
+            # Llamar a Perplexity AI (compatible con OpenAI)
             messages = [
                 {'role': 'system', 'content': system_prompt},
                 *context[-5:]  # Últimos 5 mensajes de contexto
@@ -99,8 +95,8 @@ Responde en formato JSON con esta estructura:
             response = openai.ChatCompletion.create(
                 model=self.model,
                 messages=messages,
-                temperature=0.7,
-                max_tokens=500
+                temperature=0.3,  # Más determinista, menos creativo
+                max_tokens=200    # LIMITE CORTO: Solo 200 tokens
             )
             
             # Parsear respuesta
@@ -298,5 +294,5 @@ Responde en formato JSON con esta estructura:
 
 def init_ai_service(app):
     """Inicializa el servicio de IA con la configuración de la app."""
-    if not app.config.get('OPENAI_API_KEY'):
-        app.logger.warning('OPENAI_API_KEY no configurada. El servicio de IA no funcionará.')
+    if not app.config.get('PERPLEXITY_API_KEY'):
+        app.logger.warning('PERPLEXITY_API_KEY no configurada. El servicio de IA no funcionará.')

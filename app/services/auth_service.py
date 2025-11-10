@@ -68,39 +68,61 @@ class AuthService:
     @staticmethod
     def login_user_service(email, password, remember=False):
         """
-        Autentica un usuario.
+        Autentica un usuario o trabajador.
         
         Args:
-            email: Email del usuario
-            password: Contraseña del usuario
+            email: Email del usuario/trabajador
+            password: Contraseña
             remember: Si se debe recordar la sesión
             
         Returns:
-            tuple: (success: bool, message: str, user: User)
+            tuple: (success: bool, message: str, user: User|Worker, user_type: str)
         """
         try:
+            # Primero buscar en Users (admin/owners)
             user = User.query.filter_by(email=email).first()
             
-            if not user:
-                return False, 'Email o contraseña incorrectos', None
+            if user:
+                if not user.check_password(password):
+                    return False, 'Email o contraseña incorrectos', None, None
+                
+                if not user.is_active:
+                    return False, 'Tu cuenta ha sido desactivada', None, None
+                
+                # Actualizar último login
+                user.last_login = datetime.utcnow()
+                db.session.commit()
+                
+                # Login con Flask-Login
+                login_user(user, remember=remember)
+                
+                return True, 'Inicio de sesión exitoso', user, 'user'
             
-            if not user.check_password(password):
-                return False, 'Email o contraseña incorrectos', None
+            # Si no es User, buscar en Workers
+            from app.data.models import Worker
+            worker = Worker.query.filter_by(email=email).first()
             
-            if not user.is_active:
-                return False, 'Tu cuenta ha sido desactivada', None
+            if worker:
+                if not worker.check_password(password):
+                    return False, 'Email o contraseña incorrectos', None, None
+                
+                if not worker.is_active:
+                    return False, 'Tu cuenta ha sido desactivada', None, None
+                
+                # Actualizar último login
+                worker.last_login = datetime.utcnow()
+                db.session.commit()
+                
+                # Login con Flask-Login
+                login_user(worker, remember=remember)
+                
+                return True, 'Inicio de sesión exitoso', worker, 'worker'
             
-            # Actualizar último login
-            user.last_login = datetime.utcnow()
-            db.session.commit()
-            
-            # Login con Flask-Login
-            login_user(user, remember=remember)
-            
-            return True, 'Inicio de sesión exitoso', user
+            # No encontrado en ninguna tabla
+            return False, 'Email o contraseña incorrectos', None, None
             
         except Exception as e:
-            return False, f'Error al iniciar sesión: {str(e)}', None
+            return False, f'Error al iniciar sesión: {str(e)}', None, None
     
     @staticmethod
     def logout_user_service():

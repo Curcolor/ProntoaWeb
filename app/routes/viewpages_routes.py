@@ -141,3 +141,23 @@ def logout():
 def settings():
     """Página de configuraciones del sistema."""
     return render_template('settings.html')
+
+
+# ==================== RUTAS DE TRABAJADOR ====================
+
+@viewpages_bp.route('/worker-login')
+def worker_login():
+    """Página de login para trabajadores."""
+    return render_template('worker_login.html')
+
+
+@viewpages_bp.route('/worker-orders')
+def worker_orders():
+    """Página de pedidos asignados al trabajador."""
+    return render_template('worker_orders.html')
+
+
+@viewpages_bp.route('/worker-profile')
+def worker_profile():
+    """Página de perfil del trabajador."""
+    return render_template('worker_profile.html')

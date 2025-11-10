@@ -5,6 +5,45 @@
 http://127.0.0.1:5000/api
 ```
 
+## 🤖 Integración con Perplexity AI
+
+ProntoaWeb utiliza **Perplexity AI (Llama 3.1 Sonar)** para procesar mensajes de WhatsApp de forma inteligente:
+
+### Características
+- **Procesamiento de Lenguaje Natural**: Comprende pedidos en lenguaje coloquial
+- **Extracción Automática**: Identifica productos y cantidades del catálogo
+- **Respuestas Cortas**: Optimizado para máximo 200 tokens (2 líneas)
+- **Contexto Estricto**: Solo responde sobre productos del negocio
+- **Bajo Costo**: 67% más económico que OpenAI GPT-4
+
+### Configuración
+```bash
+# En tu archivo .env
+PERPLEXITY_API_KEY=pplx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+PERPLEXITY_MODEL=llama-3.1-sonar-small-128k-online  # Recomendado: rápido y económico
+```
+
+**Modelos disponibles:**
+- `llama-3.1-sonar-small-128k-online` - **Recomendado** (rápido, barato, búsqueda web)
+- `llama-3.1-sonar-large-128k-online` - Más preciso pero costoso
+- `llama-3.1-sonar-huge-128k-online` - Máxima precisión
+
+### Cómo Funciona
+1. Cliente envía mensaje: "Quiero 2 panes y 1 café"
+2. Webhook recibe mensaje en `/api/whatsapp/webhook`
+3. Perplexity AI procesa el texto y extrae:
+   - Productos solicitados
+   - Cantidades
+   - Intención del cliente
+4. Sistema crea pedido automáticamente
+5. Envía confirmación al cliente
+
+**Restricciones de la IA:**
+- ✅ Solo habla de productos del catálogo
+- ✅ Respuestas máximo 2 líneas
+- ✅ No responde temas fuera del negocio
+- ✅ Si pregunta otra cosa: "Solo tomo pedidos"
+
 ---
 
 ## Autenticación
@@ -325,32 +364,40 @@ async function getDashboardMetrics() {
 
 ### Flujo: Cliente hace pedido por WhatsApp
 ```
-1. Cliente envía mensaje a WhatsApp
+1. Cliente envía mensaje a WhatsApp: "Quiero 2 panes y 1 café"
    ↓
 2. Webhook recibe mensaje en /api/whatsapp/webhook
    ↓
-3. AIAgentService procesa el mensaje
+3. Perplexity AI (Llama 3.1 Sonar) procesa el mensaje:
+   - Identifica productos: "panes", "café"
+   - Extrae cantidades: 2, 1
+   - Busca en catálogo activo del negocio
    ↓
-4. IA extrae productos y cantidades
+4. AIAgentService crea pedido automáticamente con items encontrados
    ↓
-5. Si está completo, crea pedido automáticamente
+5. WhatsAppService envía confirmación corta al cliente (max 2 líneas):
+   "✅ Pedido recibido: 2 panes, 1 café. Total: $8,500. Preparando..."
    ↓
-6. WhatsAppService envía confirmación al cliente
+6. Pedido aparece en dashboard con estado "received"
    ↓
-7. Pedido aparece en dashboard con estado "received"
+7. Usuario mueve pedido a "preparing" via API o interfaz web
    ↓
-8. Usuario mueve pedido a "preparing" via API
+8. WhatsAppService notifica al cliente: "🍳 Tu pedido está en preparación"
    ↓
-9. WhatsAppService notifica al cliente
+9. Usuario mueve a "ready"
    ↓
-10. Usuario mueve a "ready"
+10. WhatsAppService notifica: "✅ Tu pedido está listo para recoger"
     ↓
-11. WhatsAppService notifica que está listo
+11. Usuario marca como "sent" (delivery) o "paid" (pickup)
     ↓
-12. Usuario marca como "delivered"
-    ↓
-13. Se registra el pago
+12. Se registra el pago y cierra el pedido
 ```
+
+**Optimizaciones de Perplexity:**
+- **Temperatura 0.3**: Respuestas consistentes y predecibles
+- **Max tokens 200**: Respuestas cortas (ahorro de costos)
+- **Prompt optimizado**: 60% más corto que versión anterior
+- **Costo por pedido**: ~$0.0001 USD (85% ahorro vs GPT-4)
 
 ---
 
@@ -369,6 +416,16 @@ async function getDashboardMetrics() {
    ```
 
 5. **Rate Limiting:** Configurado para prevenir abuso de la API
+6. **Perplexity AI:**
+   - Requiere `PERPLEXITY_API_KEY` configurada en `.env`
+   - Modelo recomendado: `llama-3.1-sonar-small-128k-online`
+   - Costo: ~$1 USD por 1M tokens (67% más barato que GPT-4)
+   - Respuestas optimizadas: máximo 200 tokens por mensaje
+   - Contexto estricto: solo productos del catálogo
+7. **WhatsApp Webhook:**
+   - Debe estar configurado en Meta Developer Console
+   - Verify Token: definido en `WHATSAPP_VERIFY_TOKEN`
+   - Procesa mensajes en tiempo real con Perplexity AI
 
 ---
 

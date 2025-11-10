@@ -14,7 +14,7 @@ from app import create_app
 from app.extensions import db
 from app.data.models import (
     User, Business, Customer, Product, Order, OrderItem,
-    Message, Notification, Payment
+    Message, Notification, Payment, Worker
 )
 
 
@@ -62,6 +62,58 @@ def seed_database():
         )
         db.session.add(business1)
         db.session.flush()
+        
+        # Crear trabajadores (2 tipos: planta y repartidor)
+        print("👷 Creando trabajadores...")
+        workers_data = [
+            # Trabajadores en planta (cocina/preparación)
+            {
+                'email': 'maria.planta@prontoa.com',
+                'password': 'worker123',
+                'full_name': 'María Pérez',
+                'phone': '+573201234567',
+                'worker_type': 'planta'
+            },
+            {
+                'email': 'carlos.planta@prontoa.com',
+                'password': 'worker123',
+                'full_name': 'Carlos López',
+                'phone': '+573202345678',
+                'worker_type': 'planta'
+            },
+            # Trabajadores repartidores (delivery)
+            {
+                'email': 'juan.repartidor@prontoa.com',
+                'password': 'worker123',
+                'full_name': 'Juan García',
+                'phone': '+573203456789',
+                'worker_type': 'repartidor'
+            },
+            {
+                'email': 'ana.repartidor@prontoa.com',
+                'password': 'worker123',
+                'full_name': 'Ana Rodríguez',
+                'phone': '+573204567890',
+                'worker_type': 'repartidor'
+            }
+        ]
+        
+        workers = []
+        for worker_data in workers_data:
+            worker = Worker(
+                business_id=business1.id,
+                email=worker_data['email'],
+                full_name=worker_data['full_name'],
+                phone=worker_data['phone'],
+                worker_type=worker_data['worker_type'],
+                is_active=True
+            )
+            worker.set_password(worker_data['password'])
+            workers.append(worker)
+            db.session.add(worker)
+        
+        db.session.flush()
+        print(f"   ✓ {len(workers)} trabajadores creados")
         
         # Crear productos
         print("📦 Creando productos...")
@@ -198,6 +250,12 @@ def seed_database():
                     payment_date=order.delivered_at
                 )
                 db.session.add(payment)
+            
+            # Asignar pedidos en preparación o listos a trabajadores
+            if status in ['preparing', 'ready'] and workers:
+                # Asignar aleatoriamente a un trabajador
+                assigned_worker = random.choice(workers)
+                order.assigned_workers.append(assigned_worker)
         
         # Commit de todos los cambios
         print("💾 Guardando cambios...")
@@ -207,13 +265,28 @@ def seed_database():
         print(f"\n📊 Datos creados:")
         print(f"   👤 Usuarios: {User.query.count()}")
         print(f"   🏪 Negocios: {Business.query.count()}")
+        print(f"   👷 Trabajadores: {Worker.query.count()}")
         print(f"   👥 Clientes: {Customer.query.count()}")
         print(f"   📦 Productos: {Product.query.count()}")
         print(f"   📋 Pedidos: {Order.query.count()}")
         print(f"   💰 Pagos: {Payment.query.count()}")
         print(f"\n🔐 Credenciales de prueba:")
-        print(f"   Email: admin@prontoa.com")
-        print(f"   Password: admin123")
+        print(f"   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print(f"   👤 ADMIN:")
+        print(f"      Email: admin@prontoa.com")
+        print(f"      Password: admin123")
+        print(f"   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print(f"   👷 TRABAJADORES:")
+        print(f"      1. Worker:")
+        print(f"         Email: maria.worker@prontoa.com")
+        print(f"         Password: worker123")
+        print(f"      2. Supervisor:")
+        print(f"         Email: carlos.supervisor@prontoa.com")
+        print(f"         Password: super123")
+        print(f"      3. Manager:")
+        print(f"         Email: juan.manager@prontoa.com")
+        print(f"         Password: manager123")
+        print(f"   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 
 if __name__ == '__main__':

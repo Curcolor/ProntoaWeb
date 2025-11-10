@@ -312,3 +312,345 @@ def get_order_by_number(order_number):
             'success': False,
             'message': f'Error obteniendo pedido: {str(e)}'
         }), 500
+
+
+# ==================== ENDPOINTS PARA TRABAJADORES ====================
+
+# ============================================================
+# ENDPOINTS PARA TRABAJADORES EN PLANTA
+# ============================================================
+
+@orders_api_bp.route('/<int:order_id>/accept-to-preparing', methods=['POST'])
+@login_required
+def accept_to_preparing(order_id):
+    """Acepta un pedido recibido y lo pasa a preparación (trabajador en planta)."""
+    try:
+        from app.data.models import Order, Worker
+        from datetime import datetime
+        from app.extensions import db
+        
+        # Verificar que sea trabajador en planta
+        if not isinstance(current_user, Worker) or current_user.worker_type != 'planta':
+            return jsonify({
+                'success': False,
+                'message': 'Solo trabajadores en planta pueden aceptar pedidos'
+            }), 403
+        
+        order = Order.query.get(order_id)
+        
+        if not order:
+            return jsonify({
+                'success': False,
+                'message': 'Pedido no encontrado'
+            }), 404
+        
+        if order.business_id != current_user.business_id:
+            return jsonify({
+                'success': False,
+                'message': 'No autorizado'
+            }), 403
+        
+        if order.status != 'received':
+            return jsonify({
+                'success': False,
+                'message': f'El pedido debe estar en "recibido" (actualmente: {order.status})'
+            }), 400
+        
+        # Cambiar de received → preparing
+        order.status = 'preparing'
+        order.accepted_at = datetime.utcnow()
+        
+        # Calcular tiempo de respuesta
+        if order.created_at:
+            time_diff = order.accepted_at - order.created_at
+            order.response_time_seconds = int(time_diff.total_seconds())
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Pedido aceptado y pasado a preparación',
+            'order': order_schema.dump(order)
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Error aceptando pedido: {str(e)}'
+        }), 500
+
+
+@orders_api_bp.route('/<int:order_id>/mark-ready', methods=['POST'])
+@login_required
+def mark_order_ready(order_id):
+    """Marca un pedido como listo (trabajador en planta)."""
+    try:
+        from app.data.models import Order, Worker
+        from app.services.whatsapp_service import WhatsAppService
+        from datetime import datetime
+        from app.extensions import db
+        
+        # Verificar que sea trabajador en planta
+        if not isinstance(current_user, Worker) or current_user.worker_type != 'planta':
+            return jsonify({
+                'success': False,
+                'message': 'Solo trabajadores en planta pueden marcar pedidos como listos'
+            }), 403
+        
+        order = Order.query.get(order_id)
+        
+        if not order:
+            return jsonify({
+                'success': False,
+                'message': 'Pedido no encontrado'
+            }), 404
+        
+        if order.business_id != current_user.business_id:
+            return jsonify({
+                'success': False,
+                'message': 'No autorizado'
+            }), 403
+        
+        if order.status != 'preparing':
+            return jsonify({
+                'success': False,
+                'message': f'El pedido debe estar en preparación (actualmente: {order.status})'
+            }), 400
+        
+        # Cambiar de preparing → ready
+        order.status = 'ready'
+        order.ready_at = datetime.utcnow()
+        
+        # Calcular tiempo de preparación
+        if order.accepted_at:
+            time_diff = order.ready_at - order.accepted_at
+            order.preparation_time_seconds = int(time_diff.total_seconds())
+        
+        db.session.commit()
+        
+        # Enviar notificación WhatsApp al cliente
+        notification_sent = False
+        try:
+            if order.customer and order.customer.phone:
+                whatsapp_service = WhatsAppService()
+                whatsapp_service.send_order_ready_notification(
+                    customer_phone=order.customer.phone,
+                    order_number=order.order_number,
+                    order_type=order.order_type
+                )
+                notification_sent = True
+        except Exception as e:
+            print(f"Error enviando WhatsApp: {e}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Pedido marcado como listo',
+            'order': order_schema.dump(order),
+            'notification_sent': notification_sent
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Error marcando pedido: {str(e)}'
+        }), 500
+
+
+@orders_api_bp.route('/<int:order_id>/cancel-to-previous', methods=['POST'])
+@login_required
+def cancel_to_previous(order_id):
+    """Cancela y devuelve al estado anterior (trabajadores)."""
+    try:
+        from app.data.models import Order, Worker
+        from app.extensions import db
+        
+        # Verificar que sea trabajador
+        if not isinstance(current_user, Worker):
+            return jsonify({
+                'success': False,
+                'message': 'Solo trabajadores pueden cancelar pedidos'
+            }), 403
+        
+        order = Order.query.get(order_id)
+        
+        if not order:
+            return jsonify({
+                'success': False,
+                'message': 'Pedido no encontrado'
+            }), 404
+        
+        if order.business_id != current_user.business_id:
+            return jsonify({
+                'success': False,
+                'message': 'No autorizado'
+            }), 403
+        
+        # Mapa de cancelaciones (estado_actual → estado_anterior)
+        cancel_map = {
+            'preparing': 'received',
+            'ready': 'preparing',
+            'sent': 'ready',
+            'paid': 'sent'
+        }
+        
+        if order.status not in cancel_map:
+            return jsonify({
+                'success': False,
+                'message': f'No se puede cancelar un pedido en estado: {order.status}'
+            }), 400
+        
+        previous_status = cancel_map[order.status]
+        order.status = previous_status
+        
+        # Limpiar timestamps según el nuevo estado
+        if previous_status == 'received':
+            order.accepted_at = None
+            order.response_time_seconds = None
+        elif previous_status == 'preparing':
+            order.ready_at = None
+            order.preparation_time_seconds = None
+        elif previous_status == 'ready':
+            order.delivered_at = None
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Pedido devuelto a {previous_status}',
+            'order': order_schema.dump(order)
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Error cancelando pedido: {str(e)}'
+        }), 500
+
+
+# ============================================================
+# ENDPOINTS PARA TRABAJADORES REPARTIDORES
+# ============================================================
+
+@orders_api_bp.route('/<int:order_id>/accept-to-sent', methods=['POST'])
+@login_required
+def accept_to_sent(order_id):
+    """Acepta un pedido listo para envío (trabajador repartidor)."""
+    try:
+        from app.data.models import Order, Worker
+        from datetime import datetime
+        from app.extensions import db
+        
+        # Verificar que sea trabajador repartidor
+        if not isinstance(current_user, Worker) or current_user.worker_type != 'repartidor':
+            return jsonify({
+                'success': False,
+                'message': 'Solo repartidores pueden aceptar pedidos para envío'
+            }), 403
+        
+        order = Order.query.get(order_id)
+        
+        if not order:
+            return jsonify({
+                'success': False,
+                'message': 'Pedido no encontrado'
+            }), 404
+        
+        if order.business_id != current_user.business_id:
+            return jsonify({
+                'success': False,
+                'message': 'No autorizado'
+            }), 403
+        
+        if order.status != 'ready':
+            return jsonify({
+                'success': False,
+                'message': f'El pedido debe estar listo (actualmente: {order.status})'
+            }), 400
+        
+        # Cambiar de ready → sent
+        order.status = 'sent'
+        order.delivered_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Pedido aceptado para envío',
+            'order': order_schema.dump(order)
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Error aceptando pedido: {str(e)}'
+        }), 500
+
+
+@orders_api_bp.route('/<int:order_id>/mark-paid', methods=['POST'])
+@login_required
+def mark_order_paid(order_id):
+    """Marca un pedido como pagado y lo cierra automáticamente (trabajador repartidor)."""
+    try:
+        from app.data.models import Order, Worker
+        from datetime import datetime
+        from app.extensions import db
+        
+        # Verificar que sea trabajador repartidor
+        if not isinstance(current_user, Worker) or current_user.worker_type != 'repartidor':
+            return jsonify({
+                'success': False,
+                'message': 'Solo repartidores pueden marcar pedidos como pagados'
+            }), 403
+        
+        order = Order.query.get(order_id)
+        
+        if not order:
+            return jsonify({
+                'success': False,
+                'message': 'Pedido no encontrado'
+            }), 404
+        
+        if order.business_id != current_user.business_id:
+            return jsonify({
+                'success': False,
+                'message': 'No autorizado'
+            }), 403
+        
+        if order.status != 'sent':
+            return jsonify({
+                'success': False,
+                'message': f'El pedido debe estar enviado (actualmente: {order.status})'
+            }), 400
+        
+        # Cambiar de sent → paid → closed automáticamente
+        order.status = 'closed'  # Va directo a closed
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Pedido marcado como pagado y cerrado',
+            'order': order_schema.dump(order)
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Error marcando pedido como pagado: {str(e)}'
+        }), 500
+
+
+# ============================================================
+# ENDPOINTS LEGACY (mantener por compatibilidad)
+# ============================================================
+
+@orders_api_bp.route('/<int:order_id>/cancel', methods=['POST'])
+@login_required
+def cancel_order_worker(order_id):
+    """LEGACY: Redirige al nuevo endpoint de cancelación."""
+    return cancel_to_previous(order_id)

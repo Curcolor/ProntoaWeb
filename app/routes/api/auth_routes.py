@@ -64,22 +64,26 @@ def register():
 
 @auth_api_bp.route('/login', methods=['POST'])
 def login():
-    """Inicia sesión vía API."""
+    """Inicia sesión vía API (User o Worker)."""
     try:
         data = request.get_json()
         validated_data = login_schema.load(data)
         
-        success, message, user = AuthService.login_user_service(
+        success, message, user, user_type = AuthService.login_user_service(
             email=validated_data['email'],
             password=validated_data['password'],
             remember=validated_data.get('remember', False)
         )
         
         if success:
+            user_dict = user.to_dict()
+            user_dict['user_type'] = user_type  # 'user' o 'worker'
+            
             return jsonify({
                 'success': True,
                 'message': message,
-                'user': user.to_dict()
+                'user': user_dict,
+                'user_type': user_type
             }), 200
         else:
             return jsonify({

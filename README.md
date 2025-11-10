@@ -1,6 +1,6 @@
 # ProntoaWEB - Sistema de Gestión de Pedidos con IA
 
-Sistema completo de gestión de pedidos para negocios locales con integración de WhatsApp Business API, Agente IA con GPT-4, y dashboard en tiempo real.
+Sistema completo de gestión de pedidos para negocios locales con integración de WhatsApp Business API, Agente IA con Perplexity (Llama 3.1), y dashboard en tiempo real.
 
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-success)
 ![Python](https://img.shields.io/badge/Python-3.13-blue)
@@ -21,10 +21,11 @@ Sistema completo de gestión de pedidos para negocios locales con integración d
 
 ## Características
 
-### Agente IA con GPT-4
-- Procesamiento de lenguaje natural para pedidos por WhatsApp
+### Agente IA con Perplexity
+- Procesamiento de lenguaje natural optimizado (respuestas cortas)
 - Extracción automática de productos, cantidades y direcciones
 - Creación automática de pedidos desde conversaciones
+- Restricción estricta al contexto del negocio
 
 ### Integración WhatsApp Business
 - Recepción de mensajes via webhook
@@ -59,7 +60,7 @@ Sistema completo de gestión de pedidos para negocios locales con integración d
 - Marshmallow + WTForms
 
 ### AI & Integrations
-- OpenAI GPT-4
+- Perplexity AI (Llama 3.1 Sonar) - Respuestas cortas y enfocadas
 - WhatsApp Business API / Twilio
 - Stripe Payments
 
@@ -86,6 +87,13 @@ Sistema completo de gestión de pedidos para negocios locales con integración d
 git clone https://github.com/Curcolor/ProntoaWeb.git
 cd ProntoaWeb
 
+# Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus credenciales:
+# - PERPLEXITY_API_KEY (obtener en https://www.perplexity.ai/settings/api)
+# - WHATSAPP_PHONE_ID, WHATSAPP_TOKEN, WHATSAPP_VERIFY_TOKEN
+# - DATABASE_URL (ya configurado por docker-compose)
+
 # Iniciar con Docker (TODO automático)
 docker-compose up --build
 ```
@@ -109,7 +117,10 @@ pip install -r requirements.txt
 
 # Configurar variables
 cp .env.example .env
-# Editar .env con tus API keys
+# Editar .env con tus credenciales:
+# - PERPLEXITY_API_KEY (obtener en https://www.perplexity.ai/settings/api)
+# - WHATSAPP_PHONE_ID, WHATSAPP_TOKEN, WHATSAPP_VERIFY_TOKEN
+# - Opcional: PERPLEXITY_MODEL (default: llama-3.1-sonar-small-128k-online)
 
 # Iniciar servicios
 docker-compose up -d db
@@ -163,8 +174,11 @@ Password: admin123
 
 ---
 
-## Documentación
-- [**API_EXAMPLES.md**](API_EXAMPLES.md) - Ejemplos de uso de todas las APIs
+## 📖 Documentación Completa
+
+- [**🐳 Docker Setup**](docs/DOCKER_SETUP.md) - Guía completa de Docker con Perplexity AI
+- [**🤖 Perplexity Setup**](docs/PERPLEXITY_SETUP.md) - Configuración de Perplexity AI
+- [**📡 API Examples**](docs/Documentation/API_EXAMPLES.md) - Ejemplos de uso de todas las APIs
 
 ---
 
@@ -175,7 +189,7 @@ Password: admin123
 - [x] Autenticación completa
 - [x] API REST (25+ endpoints)
 - [x] Integración WhatsApp Business
-- [x] Agente IA con GPT-4
+- [x] Agente IA con Perplexity (optimizado)
 - [x] Dashboard con Kanban funcional
 - [x] KPIs y Analytics
 - [x] Frontend conectado a APIs
