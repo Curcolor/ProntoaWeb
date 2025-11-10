@@ -4,7 +4,7 @@ from app.config import config
 from app.extensions import init_extensions, db
 
 
-def create_app(config_name='development'):
+def create_app(config_name):
     # Determinar la configuración a utilizar
     if config_name is None:
         config_name = os.environ.get('FLASK_CONFIG', 'development')
@@ -18,6 +18,9 @@ def create_app(config_name='development'):
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
     
+    # Configurar SECRET_KEY para sesiones -- recordar mandarlo a .env en producción
+    app.secret_key = os.environ.get('SECRET_KEY')
+
     # Inicializar extensiones
     init_extensions(app)
     

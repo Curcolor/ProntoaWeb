@@ -6,11 +6,8 @@ from app import create_app
 load_dotenv()
 
 # Crear la aplicación Flask
-app = create_app()
+app = create_app(os.environ.get('FLASK_CONFIG'))
 if __name__ == '__main__':
-    # Obtener configuración desde variables de entorno
-    config_name = os.environ.get('FLASK_CONFIG')
-    
     # Ejecutar la aplicación
     app.run(
         host=app.config['HOST'],

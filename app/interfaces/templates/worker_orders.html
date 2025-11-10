@@ -1,0 +1,92 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Pedidos - Trabajador{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/worker.css') }}">
+{% endblock %}
+
+{% block navbar %}
+<!-- Sidebar y navbar del dashboard -->
+<div class="dashboard-layout">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <span class="brand-text">Prontoa!</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="{{ url_for('viewpages.worker_orders') }}" class="menu-item active">
+                <i class="fas fa-list-check"></i>
+                <span>Mis Pedidos</span>
+            </a>
+            <a href="{{ url_for('viewpages.worker_profile') }}" class="menu-item">
+                <i class="fas fa-user"></i>
+                <span>Perfil</span>
+            </a>
+            <a href="{{ url_for('viewpages.logout') }}" class="menu-item text-danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main-content">
+        <!-- Top bar -->
+        <div class="top-bar">
+            <h1 class="page-title">Pedidos Asignados</h1>
+            <div class="top-bar-actions">
+                <span class="status-indicator online">
+                    <i class="fas fa-circle"></i>
+                    Online
+                </span>
+                <span class="last-update">Última actualización: hace 2 min</span>
+                <a href="{{ url_for('viewpages.worker_profile') }}" class="user-avatar" title="Ver perfil">
+                    <span>{{ session.user.name[0] if session.user else 'T' }}</span>
+                </a>
+            </div>
+        </div>
+{% endblock %}
+
+{% block content %}
+        <!-- Contenedor de pedidos -->
+        <div class="worker-orders-container">
+            {% if orders %}
+                {% for order in orders %}
+                <div class="order-card" data-order-id="{{ order.id }}">
+                    <div class="order-header">
+                        <div class="order-id-section">
+                            <span class="order-id">#{{ order.id }}</span>
+                            <span class="order-customer">{{ order.customer }}</span>
+                        </div>
+                        <span class="order-status {% if order.status == 'Recibido' %}recibido{% elif order.status == 'En Preparación' %}preparacion{% elif order.status == 'Listo' %}listo{% endif %}">
+                            {{ order.status }}
+                        </span>
+                    </div>
+                    <p class="order-items">{{ order['items'] }}</p>
+                    <button class="btn-dispatch dispatch-btn" data-order-id="{{ order.id }}">
+                        ✓ Marcar despachado
+                    </button>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>No hay pedidos pendientes.</p>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/worker.js') }}"></script>
+{% endblock %}

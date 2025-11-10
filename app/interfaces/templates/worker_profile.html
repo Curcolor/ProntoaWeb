@@ -1,0 +1,174 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Perfil - Trabajador{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/worker_profile.css') }}">
+{% endblock %}
+
+{% block navbar %}
+<!-- Sidebar y navbar del dashboard -->
+<div class="dashboard-layout">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <span class="brand-text">Prontoa!</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="{{ url_for('viewpages.worker_orders') }}" class="menu-item">
+                <i class="fas fa-list-check"></i>
+                <span>Mis Pedidos</span>
+            </a>
+            <a href="{{ url_for('viewpages.worker_profile') }}" class="menu-item active">
+                <i class="fas fa-user"></i>
+                <span>Perfil</span>
+            </a>
+            <a href="{{ url_for('viewpages.logout') }}" class="menu-item text-danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main-content">
+        <!-- Top bar -->
+        <div class="top-bar">
+            <h1 class="page-title">Mi Perfil</h1>
+            <div class="top-bar-actions">
+                <span class="status-indicator online">
+                    <i class="fas fa-circle"></i>
+                    Online
+                </span>
+                <span class="last-update">Última actualización: hace 2 min</span>
+                <a href="{{ url_for('viewpages.worker_profile') }}" class="user-avatar" title="Mi perfil">
+                    <span>{{ worker.name[0] if worker.name else 'T' }}</span>
+                </a>
+            </div>
+        </div>
+{% endblock %}
+
+{% block content %}
+        <!-- Contenedor principal de perfil -->
+        <div class="profile-container">
+            
+            <!-- Tarjeta de información personal -->
+            <div class="profile-card profile-info">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="profile-details">
+                        <h2 class="profile-name">{{ worker.name }}</h2>
+                        <p class="profile-email">{{ worker.email }}</p>
+                        <span class="profile-status status-active">
+                            <i class="fas fa-circle"></i> {{ worker.status }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="profile-info-grid">
+                    <div class="info-item">
+                        <label>Empresa</label>
+                        <p>{{ worker.empresa }}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Teléfono</label>
+                        <p>{{ worker.phone }}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Se unió</label>
+                        <p>{{ worker.joined }}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Email</label>
+                        <p>{{ worker.email }}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Rol</label>
+                        <p><span class="badge badge-primary">Trabajador</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjetas de estadísticas -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value">{{ worker.total_orders }}</h3>
+                        <p class="stat-label">Pedidos Totales</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value">{{ worker.completed_orders }}</h3>
+                        <p class="stat-label">Completados</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon info">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value">{{ worker.average_time }}</h3>
+                        <p class="stat-label">Tiempo Promedio</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value">{{ worker.satisfaction }}</h3>
+                        <p class="stat-label">Satisfacción</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de acciones -->
+            <div class="profile-actions">
+                <h3>Acciones</h3>
+                <div class="actions-grid">
+                    <button class="action-btn primary">
+                        <i class="fas fa-edit"></i>
+                        Editar Perfil
+                    </button>
+                    <button class="action-btn secondary">
+                        <i class="fas fa-lock"></i>
+                        Cambiar Contraseña
+                    </button>
+                    <button class="action-btn info">
+                        <i class="fas fa-bell"></i>
+                        Notificaciones
+                    </button>
+                    <button class="action-btn danger">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/worker_profile.js') }}"></script>
+{% endblock %}

@@ -23,21 +23,30 @@ def home():
 @viewpages_bp.route('/dashboard')
 @login_required
 def dashboard():
-    """Panel de control principal con tablero Kanban de pedidos."""
+    """Panel de control principal con tablero Kanban de pedidos (solo admin)."""
+    user = session.get('user')
+    if not user or user.get('role') != 'admin':
+        return redirect(url_for('viewpages.login'))
     return render_template('dashboard.html')
 
 
 @viewpages_bp.route('/kpis')
 @login_required
 def kpis():
-    """Página de KPIs y métricas de rendimiento."""
+    """Página de KPIs y métricas de rendimiento (solo admin)."""
+    user = session.get('user')
+    if not user or user.get('role') != 'admin':
+        return redirect(url_for('viewpages.login'))
     return render_template('kpis.html')
 
 
 @viewpages_bp.route('/profile')
 @login_required
 def profile():
-    """Página de perfil del usuario con información personal y métricas."""
+    """Página de perfil del usuario (solo admin)."""
+    user = session.get('user')
+    if not user or user.get('role') != 'admin':
+        return redirect(url_for('viewpages.login'))
     return render_template('profile.html')
 
 
