@@ -11,6 +11,7 @@ from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_socketio import SocketIO
 from flask_marshmallow import Marshmallow
+from flask_wtf.csrf import CSRFProtect
 
 # Inicializar extensiones
 db = SQLAlchemy()
@@ -20,6 +21,7 @@ bcrypt = Bcrypt()
 cors = CORS()
 socketio = SocketIO()
 ma = Marshmallow()
+csrf = CSRFProtect()
 
 
 def init_extensions(app: Flask) -> None:
@@ -28,6 +30,9 @@ def init_extensions(app: Flask) -> None:
     # Database
     db.init_app(app)
     migrate.init_app(app, db)
+    
+    # CSRF Protection
+    csrf.init_app(app)
     
     # Authentication
     login_manager.init_app(app)
@@ -75,7 +80,7 @@ def init_template_context(app: Flask) -> None:
     @app.context_processor
     def inject_global_vars():
         """Variables globales básicas para todos los templates."""
-        from datetime import datetime
+        from datetime import datetime, timezone
         from flask_login import current_user
         
         return {

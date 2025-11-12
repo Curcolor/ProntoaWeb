@@ -2,7 +2,7 @@
 Servicio de KPIs y métricas de rendimiento.
 Calcula y proporciona métricas del negocio.
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from sqlalchemy import func, and_, case
 from app.extensions import db
 from app.data.models import Order, Customer, Payment
@@ -22,7 +22,7 @@ class KPIService:
         Returns:
             dict: Diccionario con métricas
         """
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         
         # Pedidos del día
         orders_today = Order.query.filter(
@@ -56,23 +56,64 @@ class KPIService:
             )
         ).scalar()
         
-        # Satisfacción (calculada en base a pedidos completados vs cancelados)
-        completed_today = Order.query.filter(
-            and_(
-                Order.business_id == business_id,
-                Order.created_at >= today_start,
-                Order.status.in_(['closed', 'paid'])
-            )
-        ).count()
-        
-        total_today = Order.query.filter(
+        # Satisfacción (calculada en base a tiempos de entrega)
+        # Obtener pedidos de hoy con tiempos calculados
+        orders_with_times = Order.query.filter(
             and_(
                 Order.business_id == business_id,
                 Order.created_at >= today_start
             )
-        ).count()
+        ).all()
         
-        satisfaction = round((completed_today / total_today * 100), 1) if total_today > 0 else 0
+        if not orders_with_times:
+            satisfaction = 0
+        else:
+            total_score = 0
+            now_aware = datetime.now(timezone.utc)
+            
+            for order in orders_with_times:
+                # Asegurar que created_at tenga timezone
+                created_at = order.created_at
+                if created_at.tzinfo is None:
+                    created_at = created_at.replace(tzinfo=timezone.utc)
+                
+                # Calcular tiempo total desde creación hasta entrega/estado actual
+                if order.delivered_at:
+                    # Pedido entregado - calcular tiempo total
+                    delivered_at = order.delivered_at
+                    if delivered_at.tzinfo is None:
+                        delivered_at = delivered_at.replace(tzinfo=timezone.utc)
+                    delivery_time_minutes = (delivered_at - created_at).total_seconds() / 60
+                elif order.ready_at:
+                    # Pedido listo pero no entregado - usar tiempo hasta ready
+                    ready_at = order.ready_at
+                    if ready_at.tzinfo is None:
+                        ready_at = ready_at.replace(tzinfo=timezone.utc)
+                    delivery_time_minutes = (ready_at - created_at).total_seconds() / 60
+                elif order.accepted_at:
+                    # Pedido aceptado pero no listo - usar tiempo hasta now
+                    delivery_time_minutes = (now_aware - created_at).total_seconds() / 60
+                else:
+                    # Pedido recién recibido - asignar score neutral
+                    delivery_time_minutes = None
+                
+                # Asignar score según tiempo
+                if delivery_time_minutes is None:
+                    score = 70  # Pedidos nuevos reciben score neutral
+                elif delivery_time_minutes <= 30:
+                    score = 100  # Excelente: <= 30 min
+                elif delivery_time_minutes <= 45:
+                    score = 85   # Muy bueno: 30-45 min
+                elif delivery_time_minutes <= 60:
+                    score = 70   # Bueno: 45-60 min
+                elif delivery_time_minutes <= 90:
+                    score = 50   # Regular: 60-90 min
+                else:
+                    score = 30   # Malo: > 90 min
+                
+                total_score += score
+            
+            satisfaction = round(total_score / len(orders_with_times), 1)
         
         return {
             'orders_today': orders_today,
@@ -93,7 +134,7 @@ class KPIService:
         Returns:
             dict: Diccionario con métricas y comparaciones
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         current_period_start = now - timedelta(days=period_days)
         previous_period_start = current_period_start - timedelta(days=period_days)
         
@@ -182,7 +223,7 @@ class KPIService:
         Returns:
             dict: Métricas operativas
         """
-        period_start = datetime.utcnow() - timedelta(days=period_days)
+        period_start = datetime.now(timezone.utc) - timedelta(days=period_days)
         
         # Tasa de automatización (pedidos con IA vs manuales)
         total_orders = Order.query.filter(
@@ -252,7 +293,7 @@ class KPIService:
         Returns:
             dict: Métricas financieras
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         current_period_start = now - timedelta(days=period_days)
         previous_period_start = current_period_start - timedelta(days=period_days)
         
@@ -320,7 +361,7 @@ class KPIService:
         Returns:
             dict: Pedidos por hora
         """
-        period_start = datetime.utcnow() - timedelta(days=days)
+        period_start = datetime.now(timezone.utc) - timedelta(days=days)
         
         orders = Order.query.filter(
             and_(

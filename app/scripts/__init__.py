@@ -1,3 +1,3 @@
 """
-Scripts de utilidad para ProntoaWeb.
+Scripts de utilidad.
 """

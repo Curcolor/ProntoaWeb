@@ -1,0 +1,290 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Repartidor - Pedidos{% endblock %}
+
+{% block content %}
+<div class="worker-container">
+    <header class="worker-header">
+        <div class="header-content">
+            <h1>🚴 Repartidor - Entregas</h1>
+            <div class="worker-info">
+                <span class="worker-name">{{ current_user.full_name }}</span>
+                <span class="worker-badge badge-delivery">Repartidor</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="orders-section">
+        <!-- Pedidos Listos para Enviar -->
+        <div class="orders-column">
+            <h2 class="column-title">
+                <span class="status-icon">📦</span>
+                Listos para Enviar
+            </h2>
+            <div id="ready-orders" class="orders-list">
+                <p class="empty-message">No hay pedidos listos</p>
+            </div>
+        </div>
+
+        <!-- Pedidos En Camino -->
+        <div class="orders-column">
+            <h2 class="column-title">
+                <span class="status-icon">🚴</span>
+                En Camino
+            </h2>
+            <div id="sent-orders" class="orders-list">
+                <p class="empty-message">No hay pedidos en camino</p>
+            </div>
+        </div>
+
+        <!-- Pedidos Entregados -->
+        <div class="orders-column">
+            <h2 class="column-title">
+                <span class="status-icon">✅</span>
+                Entregados
+            </h2>
+            <div id="paid-orders" class="orders-list">
+                <p class="empty-message">No hay pedidos entregados hoy</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template para tarjeta de pedido -->
+<template id="order-card-template">
+    <div class="order-card" data-order-id="">
+        <div class="order-header">
+            <span class="order-number">#<span class="order-id"></span></span>
+            <span class="order-time"></span>
+        </div>
+        <div class="order-customer">
+            <strong>Cliente:</strong> <span class="customer-name"></span>
+        </div>
+        <div class="order-address">
+            <strong>📍 Dirección:</strong>
+            <div class="address-text"></div>
+        </div>
+        <div class="order-phone">
+            <strong>📞 Teléfono:</strong> <span class="phone-number"></span>
+            <button class="btn-call" onclick="callCustomer(this)">
+                <i class="fas fa-phone"></i> Llamar
+            </button>
+        </div>
+        <div class="order-total">
+            <strong>Total:</strong> $<span class="total-amount"></span>
+        </div>
+        <div class="order-notes">
+            <small class="delivery-notes"></small>
+        </div>
+        <div class="order-actions">
+            <!-- Los botones se agregarán dinámicamente según el estado -->
+        </div>
+    </div>
+</template>
+
+<style>
+.worker-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.worker-header {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.worker-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.worker-badge {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.badge-delivery {
+    background: #FF9800;
+    color: white;
+}
+
+.orders-section {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.orders-column {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 10px;
+    min-height: 500px;
+}
+
+.column-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+.status-icon {
+    font-size: 1.5em;
+}
+
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.order-card {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.order-number {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #FF9800;
+}
+
+.order-time {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.order-customer,
+.order-address,
+.order-phone,
+.order-total {
+    margin-bottom: 10px;
+}
+
+.order-address {
+    padding: 10px;
+    background: #e3f2fd;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+.address-text {
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+.order-phone {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-call {
+    padding: 5px 15px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.btn-call:hover {
+    background: #45a049;
+}
+
+.order-total {
+    font-size: 1.1em;
+    padding: 10px;
+    background: #f0f0f0;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+.order-notes {
+    margin: 10px 0;
+    padding: 10px;
+    background: #fff3cd;
+    border-radius: 5px;
+    font-style: italic;
+}
+
+.order-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-action {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-pickup {
+    background: #FF9800;
+    color: white;
+}
+
+.btn-pickup:hover {
+    background: #e68900;
+}
+
+.btn-delivered {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-delivered:hover {
+    background: #45a049;
+}
+
+.empty-message {
+    text-align: center;
+    color: #999;
+    padding: 40px 20px;
+}
+
+@media (max-width: 1024px) {
+    .orders-section {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script src="{{ url_for('static', filename='js/worker_delivery.js') }}"></script>
+{% endblock %}

@@ -2,7 +2,7 @@
 Servicio de autenticación.
 Maneja registro, login, logout y gestión de sesiones.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import flash
 from flask_login import login_user, logout_user
 from app.extensions import db
@@ -89,12 +89,12 @@ class AuthService:
                 if not user.is_active:
                     return False, 'Tu cuenta ha sido desactivada', None, None
                 
-                # Actualizar último login
-                user.last_login = datetime.utcnow()
-                db.session.commit()
-                
-                # Login con Flask-Login
+                # Login con Flask-Login primero
                 login_user(user, remember=remember)
+                
+                # Actualizar último login después del login
+                user.last_login = datetime.now(timezone.utc)
+                db.session.commit()
                 
                 return True, 'Inicio de sesión exitoso', user, 'user'
             
@@ -109,12 +109,12 @@ class AuthService:
                 if not worker.is_active:
                     return False, 'Tu cuenta ha sido desactivada', None, None
                 
-                # Actualizar último login
-                worker.last_login = datetime.utcnow()
-                db.session.commit()
-                
-                # Login con Flask-Login
+                # Login con Flask-Login primero
                 login_user(worker, remember=remember)
+                
+                # Actualizar último login después del login
+                worker.last_login = datetime.now(timezone.utc)
+                db.session.commit()
                 
                 return True, 'Inicio de sesión exitoso', worker, 'worker'
             
@@ -122,6 +122,7 @@ class AuthService:
             return False, 'Email o contraseña incorrectos', None, None
             
         except Exception as e:
+            db.session.rollback()
             return False, f'Error al iniciar sesión: {str(e)}', None, None
     
     @staticmethod

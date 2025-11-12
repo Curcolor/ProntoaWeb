@@ -37,7 +37,7 @@
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
             </a>
-            <a href="{{ url_for('viewpages.login') }}" class="menu-item text-danger">
+            <a href="{{ url_for('viewpages.logout') }}" class="menu-item text-danger">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Salir</span>
             </a>
@@ -66,19 +66,27 @@
         <!-- Métricas principales -->
         <div class="metrics-grid">
             <div class="metric-card primary">
-                <div class="metric-value">24</div>
+                <div class="metric-value" id="orders-today">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
                 <div class="metric-label">Pedidos Hoy</div>
             </div>
             <div class="metric-card success">
-                <div class="metric-value">4.2min</div>
+                <div class="metric-value" id="avg-response-time">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
                 <div class="metric-label">Tiempo Promedio</div>
             </div>
             <div class="metric-card purple">
-                <div class="metric-value">$850K</div>
+                <div class="metric-value" id="sales-today">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
                 <div class="metric-label">Ventas del Día</div>
             </div>
             <div class="metric-card warning">
-                <div class="metric-value">98%</div>
+                <div class="metric-value" id="satisfaction">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
                 <div class="metric-label">Satisfacción</div>
             </div>
         </div>
@@ -86,86 +94,62 @@
         <!-- Tablero Kanban -->
         <div class="kanban-board">
             <!-- Columna Recibido -->
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="received">
                 <div class="column-header received">
-                    <h3>Recibido (3)</h3>
+                    <h3>Recibidos (0)</h3>
                 </div>
-                <div class="column-content">
-                    <div class="order-card">
-                        <div class="order-id">Pedido #1234</div>
-                    </div>
-                    <div class="order-card">
-                        <div class="order-id">Pedido #1235</div>
-                    </div>
+                <div class="kanban-cards column-content">
+                    <!-- Los pedidos se cargan dinámicamente aquí -->
                 </div>
             </div>
 
             <!-- Columna En Preparación -->
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="preparing">
                 <div class="column-header preparing">
-                    <h3>En Preparación (5)</h3>
+                    <h3>En Preparación (0)</h3>
                 </div>
-                <div class="column-content">
-                    <div class="order-card">
-                        <div class="order-id">Pedido #1230</div>
-                    </div>
-                    <div class="order-card">
-                        <div class="order-id">Pedido #1231</div>
-                    </div>
+                <div class="kanban-cards column-content">
+                    <!-- Los pedidos se cargan dinámicamente aquí -->
                 </div>
             </div>
 
             <!-- Columna Listo -->
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="ready">
                 <div class="column-header ready">
-                    <h3>Listo (2)</h3>
+                    <h3>Listos (0)</h3>
                 </div>
-                <div class="column-content">
-                    <div class="order-card">
-                        <div class="order-id">Pedido #1228</div>
-                    </div>
+                <div class="kanban-cards column-content">
+                    <!-- Los pedidos se cargan dinámicamente aquí -->
                 </div>
             </div>
 
             <!-- Columna Enviado -->
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="sent">
                 <div class="column-header sent">
-                    <h3>Enviado (4)</h3>
+                    <h3>Enviados (0)</h3>
                 </div>
-                <div class="column-content">
-                    <div class="order-card">
-                        <div class="order-id">Pedido #1225</div>
-                    </div>
-                    <div class="order-card">
-                        <div class="order-id">Pedido #1226</div>
-                    </div>
+                <div class="kanban-cards column-content">
+                    <!-- Los pedidos se cargan dinámicamente aquí -->
                 </div>
             </div>
 
             <!-- Columna Pagado -->
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="paid">
                 <div class="column-header paid">
-                    <h3>Pagado (6)</h3>
+                    <h3>Pagados (0)</h3>
                 </div>
-                <div class="column-content">
-                    <div class="order-card">
-                        <div class="order-id">Pedido #1220</div>
-                    </div>
-                    <div class="order-card">
-                        <div class="order-id">Pedido #1221</div>
-                    </div>
+                <div class="kanban-cards column-content">
+                    <!-- Los pedidos se cargan dinámicamente aquí -->
                 </div>
             </div>
 
             <!-- Columna Cerrado -->
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="closed">
                 <div class="column-header closed">
-                    <h3>Cerrado (12)</h3>
+                    <h3>Cerrados (0)</h3>
                 </div>
-                <div class="column-content">
-                    <div class="order-card">
-                        <div class="order-id">Pedido #1218</div>
-                    </div>
+                <div class="kanban-cards column-content">
+                    <!-- Los pedidos se cargan dinámicamente aquí -->
                 </div>
             </div>
         </div>

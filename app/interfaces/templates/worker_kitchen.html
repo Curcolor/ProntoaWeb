@@ -1,0 +1,250 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Cocina - Pedidos{% endblock %}
+
+{% block content %}
+<div class="worker-container">
+    <header class="worker-header">
+        <div class="header-content">
+            <h1>🍳 Cocina - Pedidos</h1>
+            <div class="worker-info">
+                <span class="worker-name">{{ current_user.full_name }}</span>
+                <span class="worker-badge badge-kitchen">Cocina</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="orders-section">
+        <!-- Pedidos Recibidos (pendientes de preparar) -->
+        <div class="orders-column">
+            <h2 class="column-title">
+                <span class="status-icon">📥</span>
+                Recibidos
+            </h2>
+            <div id="received-orders" class="orders-list">
+                <p class="empty-message">No hay pedidos recibidos</p>
+            </div>
+        </div>
+
+        <!-- Pedidos en Preparación -->
+        <div class="orders-column">
+            <h2 class="column-title">
+                <span class="status-icon">👨‍🍳</span>
+                En Preparación
+            </h2>
+            <div id="preparing-orders" class="orders-list">
+                <p class="empty-message">No hay pedidos en preparación</p>
+            </div>
+        </div>
+
+        <!-- Pedidos Listos -->
+        <div class="orders-column">
+            <h2 class="column-title">
+                <span class="status-icon">✅</span>
+                Listos
+            </h2>
+            <div id="ready-orders" class="orders-list">
+                <p class="empty-message">No hay pedidos listos</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template para tarjeta de pedido -->
+<template id="order-card-template">
+    <div class="order-card" data-order-id="">
+        <div class="order-header">
+            <span class="order-number">#<span class="order-id"></span></span>
+            <span class="order-time"></span>
+        </div>
+        <div class="order-customer">
+            <strong>Cliente:</strong> <span class="customer-name"></span>
+        </div>
+        <div class="order-items">
+            <!-- Los items se agregarán dinámicamente -->
+        </div>
+        <div class="order-notes">
+            <small class="delivery-notes"></small>
+        </div>
+        <div class="order-actions">
+            <!-- Los botones se agregarán dinámicamente según el estado -->
+        </div>
+    </div>
+</template>
+
+<style>
+.worker-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.worker-header {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.worker-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.worker-badge {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.badge-kitchen {
+    background: #4CAF50;
+    color: white;
+}
+
+.orders-section {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.orders-column {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 10px;
+    min-height: 500px;
+}
+
+.column-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+.status-icon {
+    font-size: 1.5em;
+}
+
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.order-card {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.order-number {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #2196F3;
+}
+
+.order-time {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.order-customer {
+    margin-bottom: 10px;
+}
+
+.order-items {
+    margin: 10px 0;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 5px;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+}
+
+.order-notes {
+    margin: 10px 0;
+    padding: 10px;
+    background: #fff3cd;
+    border-radius: 5px;
+    font-style: italic;
+}
+
+.order-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-action {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-start {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-start:hover {
+    background: #45a049;
+}
+
+.btn-ready {
+    background: #2196F3;
+    color: white;
+}
+
+.btn-ready:hover {
+    background: #0b7dda;
+}
+
+.empty-message {
+    text-align: center;
+    color: #999;
+    padding: 40px 20px;
+}
+
+@media (max-width: 1024px) {
+    .orders-section {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script src="{{ url_for('static', filename='js/worker_kitchen.js') }}"></script>
+{% endblock %}

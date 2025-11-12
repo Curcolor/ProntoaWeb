@@ -1,17 +1,7 @@
-# ==================== MODELOS ====================
-from app.data.models.user import User
-from app.data.models.business import Business
-from app.data.models.customer import Customer
-from app.data.models.product import Product
-from app.data.models.order import Order
-from app.data.models.order_item import OrderItem
-from app.data.models.message import Message
-from app.data.models.notification import Notification
-from app.data.models.payment import Payment
-from app.data.models.ai_conversation import AIConversation
-from app.data.models.worker import Worker
-
-# ==================== SCHEMAS ====================
+"""
+Schemas de Marshmallow
+"""
+# Model Schemas
 from app.data.schemas.user_schema import UserSchema, user_schema, users_schema
 from app.data.schemas.business_schema import BusinessSchema, business_schema, businesses_schema
 from app.data.schemas.customer_schema import CustomerSchema, customer_schema, customers_schema
@@ -25,6 +15,8 @@ from app.data.schemas.message_schema import MessageSchema, message_schema, messa
 from app.data.schemas.notification_schema import NotificationSchema, notification_schema, notifications_schema
 from app.data.schemas.payment_schema import PaymentSchema, payment_schema, payments_schema
 from app.data.schemas.worker_schema import WorkerSchema, worker_schema, workers_schema
+
+# Validation Schemas
 from app.data.schemas.validation_schemas import (
     LoginSchema, RegisterSchema,
     OrderCreateSchema, OrderUpdateSchema,
@@ -34,22 +26,8 @@ from app.data.schemas.validation_schemas import (
     message_send_schema
 )
 
-# ==================== EXPORTAR TODO ====================
 __all__ = [
-    # Modelos
-    'User',
-    'Business',
-    'Customer',
-    'Product',
-    'Order',
-    'OrderItem',
-    'Message',
-    'Notification',
-    'Payment',
-    'AIConversation',
-    'Worker',
-    
-    # Schema Classes
+    # Model Schema Classes
     'UserSchema',
     'BusinessSchema',
     'CustomerSchema',
@@ -60,13 +38,8 @@ __all__ = [
     'NotificationSchema',
     'PaymentSchema',
     'WorkerSchema',
-    'LoginSchema',
-    'RegisterSchema',
-    'OrderCreateSchema',
-    'OrderUpdateSchema',
-    'MessageSendSchema',
     
-    # Schema Instances
+    # Model Schema Instances
     'user_schema',
     'users_schema',
     'business_schema',
@@ -87,6 +60,15 @@ __all__ = [
     'payments_schema',
     'worker_schema',
     'workers_schema',
+    
+    # Validation Schema Classes
+    'LoginSchema',
+    'RegisterSchema',
+    'OrderCreateSchema',
+    'OrderUpdateSchema',
+    'MessageSendSchema',
+    
+    # Validation Schema Instances
     'login_schema',
     'register_schema',
     'order_create_schema',

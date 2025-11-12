@@ -34,10 +34,25 @@ def get_orders():
             offset=offset
         )
         
+        # Contar pedidos por estado
+        by_status = {
+            'received': 0,
+            'preparing': 0,
+            'ready': 0,
+            'sent': 0,
+            'paid': 0,
+            'closed': 0
+        }
+        
+        for order in orders:
+            if order.status in by_status:
+                by_status[order.status] += 1
+        
         return jsonify({
             'success': True,
             'orders': orders_schema.dump(orders),
-            'total': len(orders)
+            'total': len(orders),
+            'by_status': by_status
         }), 200
         
     except Exception as e:
@@ -326,7 +341,7 @@ def accept_to_preparing(order_id):
     """Acepta un pedido recibido y lo pasa a preparación (trabajador en planta)."""
     try:
         from app.data.models import Order, Worker
-        from datetime import datetime
+        from datetime import datetime, timezone
         from app.extensions import db
         
         # Verificar que sea trabajador en planta
@@ -358,7 +373,7 @@ def accept_to_preparing(order_id):
         
         # Cambiar de received → preparing
         order.status = 'preparing'
-        order.accepted_at = datetime.utcnow()
+        order.accepted_at = lambda: datetime.now(timezone.utc)()
         
         # Calcular tiempo de respuesta
         if order.created_at:
@@ -388,7 +403,7 @@ def mark_order_ready(order_id):
     try:
         from app.data.models import Order, Worker
         from app.services.whatsapp_service import WhatsAppService
-        from datetime import datetime
+        from datetime import datetime, timezone
         from app.extensions import db
         
         # Verificar que sea trabajador en planta
@@ -420,7 +435,7 @@ def mark_order_ready(order_id):
         
         # Cambiar de preparing → ready
         order.status = 'ready'
-        order.ready_at = datetime.utcnow()
+        order.ready_at = lambda: datetime.now(timezone.utc)()
         
         # Calcular tiempo de preparación
         if order.accepted_at:
@@ -540,7 +555,7 @@ def accept_to_sent(order_id):
     """Acepta un pedido listo para envío (trabajador repartidor)."""
     try:
         from app.data.models import Order, Worker
-        from datetime import datetime
+        from datetime import datetime, timezone
         from app.extensions import db
         
         # Verificar que sea trabajador repartidor
@@ -572,7 +587,7 @@ def accept_to_sent(order_id):
         
         # Cambiar de ready → sent
         order.status = 'sent'
-        order.delivered_at = datetime.utcnow()
+        order.delivered_at = lambda: datetime.now(timezone.utc)()
         
         db.session.commit()
         
@@ -596,7 +611,7 @@ def mark_order_paid(order_id):
     """Marca un pedido como pagado y lo cierra automáticamente (trabajador repartidor)."""
     try:
         from app.data.models import Order, Worker
-        from datetime import datetime
+        from datetime import datetime, timezone
         from app.extensions import db
         
         # Verificar que sea trabajador repartidor
@@ -654,3 +669,266 @@ def mark_order_paid(order_id):
 def cancel_order_worker(order_id):
     """LEGACY: Redirige al nuevo endpoint de cancelación."""
     return cancel_to_previous(order_id)
+
+
+# ==================== ENDPOINTS PARA TRABAJADORES ====================
+
+@orders_api_bp.route('/worker/kitchen', methods=['GET'])
+@login_required
+def get_kitchen_orders():
+    """
+    Obtiene pedidos para trabajadores de cocina.
+    Estados: received, preparing, ready
+    """
+    try:
+        # Verificar que sea un trabajador
+        if not hasattr(current_user, 'worker_type'):
+            return jsonify({
+                'success': False,
+                'message': 'Acceso solo para trabajadores'
+            }), 403
+        
+        # Verificar que sea trabajador de cocina
+        if current_user.worker_type != 'planta':
+            return jsonify({
+                'success': False,
+                'message': 'Acceso solo para trabajadores de cocina'
+            }), 403
+        
+        # Obtener pedidos en estados relevantes para cocina
+        business_id = current_user.business_id
+        
+        received_orders = OrderService.get_orders_by_business(
+            business_id=business_id,
+            status='received'
+        )
+        
+        preparing_orders = OrderService.get_orders_by_business(
+            business_id=business_id,
+            status='preparing'
+        )
+        
+        ready_orders = OrderService.get_orders_by_business(
+            business_id=business_id,
+            status='ready'
+        )
+        
+        # Combinar todos los pedidos
+        all_orders = received_orders + preparing_orders + ready_orders
+        
+        # Serializar con información completa
+        orders_data = []
+        for order in all_orders:
+            order_dict = order_schema.dump(order)
+            # Agregar información del cliente
+            if order.customer:
+                order_dict['customer_name'] = order.customer.full_name
+                order_dict['customer_phone'] = order.customer.phone
+            # Agregar items
+            order_dict['items'] = [
+                {
+                    'product_name': item.product.name if item.product else 'Producto',
+                    'quantity': item.quantity,
+                    'unit_price': float(item.unit_price),
+                    'subtotal': float(item.subtotal)
+                }
+                for item in order.items
+            ]
+            orders_data.append(order_dict)
+        
+        return jsonify({
+            'success': True,
+            'orders': orders_data,
+            'total': len(orders_data)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error obteniendo pedidos de cocina: {str(e)}'
+        }), 500
+
+
+@orders_api_bp.route('/worker/delivery', methods=['GET'])
+@login_required
+def get_delivery_orders():
+    """
+    Obtiene pedidos para repartidores.
+    Estados: ready, sent, paid
+    """
+    try:
+        # Verificar que sea un trabajador
+        if not hasattr(current_user, 'worker_type'):
+            return jsonify({
+                'success': False,
+                'message': 'Acceso solo para trabajadores'
+            }), 403
+        
+        # Verificar que sea repartidor
+        if current_user.worker_type != 'repartidor':
+            return jsonify({
+                'success': False,
+                'message': 'Acceso solo para repartidores'
+            }), 403
+        
+        # Obtener pedidos en estados relevantes para repartidor
+        business_id = current_user.business_id
+        
+        ready_orders = OrderService.get_orders_by_business(
+            business_id=business_id,
+            status='ready'
+        )
+        
+        sent_orders = OrderService.get_orders_by_business(
+            business_id=business_id,
+            status='sent'
+        )
+        
+        paid_orders = OrderService.get_orders_by_business(
+            business_id=business_id,
+            status='paid'
+        )
+        
+        # Combinar todos los pedidos
+        all_orders = ready_orders + sent_orders + paid_orders
+        
+        # Serializar con información completa
+        orders_data = []
+        for order in all_orders:
+            order_dict = order_schema.dump(order)
+            # Agregar información del cliente
+            if order.customer:
+                order_dict['customer_name'] = order.customer.full_name
+                order_dict['customer_phone'] = order.customer.phone
+            # Agregar dirección de entrega
+            order_dict['delivery_address'] = order.delivery_address or 'No especificada'
+            # Agregar items (opcional para repartidor, pero útil)
+            order_dict['items'] = [
+                {
+                    'product_name': item.product.name if item.product else 'Producto',
+                    'quantity': item.quantity,
+                    'subtotal': float(item.subtotal)
+                }
+                for item in order.items
+            ]
+            orders_data.append(order_dict)
+        
+        return jsonify({
+            'success': True,
+            'orders': orders_data,
+            'total': len(orders_data)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error obteniendo pedidos de entrega: {str(e)}'
+        }), 500
+
+
+@orders_api_bp.route('/<int:order_id>/status', methods=['PUT'])
+@login_required
+def update_order_status_worker(order_id):
+    """
+    Actualiza el estado de un pedido (para trabajadores).
+    Body: { "status": "preparing|ready|sent|paid" }
+    """
+    try:
+        # Verificar que sea un trabajador
+        if not hasattr(current_user, 'worker_type'):
+            return jsonify({
+                'success': False,
+                'message': 'Acceso solo para trabajadores'
+            }), 403
+        
+        data = request.get_json()
+        new_status = data.get('status')
+        
+        if not new_status:
+            return jsonify({
+                'success': False,
+                'message': 'Estado requerido'
+            }), 400
+        
+        # Obtener el pedido
+        from app.data.models import Order
+        order = Order.query.get(order_id)
+        
+        if not order:
+            return jsonify({
+                'success': False,
+                'message': 'Pedido no encontrado'
+            }), 404
+        
+        # Verificar que el pedido sea del negocio del trabajador
+        if order.business_id != current_user.business_id:
+            return jsonify({
+                'success': False,
+                'message': 'No tienes permiso para este pedido'
+            }), 403
+        
+        # Validar transiciones según el tipo de trabajador
+        if current_user.worker_type == 'planta':
+            # Cocina puede: received → preparing, preparing → ready
+            allowed_transitions = {
+                'received': ['preparing'],
+                'preparing': ['ready']
+            }
+        elif current_user.worker_type == 'repartidor':
+            # Repartidor puede: ready → sent, sent → paid
+            allowed_transitions = {
+                'ready': ['sent'],
+                'sent': ['paid']
+            }
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Tipo de trabajador no válido'
+            }), 403
+        
+        # Verificar transición válida
+        current_status = order.status
+        if current_status not in allowed_transitions:
+            return jsonify({
+                'success': False,
+                'message': f'No puedes cambiar pedidos en estado {current_status}'
+            }), 400
+        
+        if new_status not in allowed_transitions[current_status]:
+            return jsonify({
+                'success': False,
+                'message': f'Transición no permitida: {current_status} → {new_status}'
+            }), 400
+        
+        # Actualizar el estado
+        from datetime import datetime, timezone
+        from app.extensions import db
+        
+        order.status = new_status
+        order.updated_at = datetime.now(timezone.utc)
+        
+        # Actualizar campos específicos según el estado
+        if new_status == 'preparing':
+            order.preparing_at = datetime.now(timezone.utc)
+        elif new_status == 'ready':
+            order.ready_at = datetime.now(timezone.utc)
+        elif new_status == 'sent':
+            order.sent_at = datetime.now(timezone.utc)
+        elif new_status == 'paid':
+            order.paid_at = datetime.now(timezone.utc)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Pedido actualizado a {new_status}',
+            'order': order_schema.dump(order)
+        }), 200
+        
+    except Exception as e:
+        from app.extensions import db
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Error actualizando pedido: {str(e)}'
+        }), 500

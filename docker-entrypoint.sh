@@ -15,7 +15,7 @@ TABLE_EXISTS=$(PGPASSWORD=prontoa_pass psql -h db -U prontoa_user -d prontoa_db 
 
 if [ "$TABLE_EXISTS" = "0" ]; then
     echo "📊 Base de datos vacía, ejecutando seed..."
-    python app/scripts/seed_database.py
+    python -m app.scripts.seed_database
     echo "✅ Base de datos inicializada con datos de prueba"
 else
     echo "ℹ️  Base de datos ya inicializada, omitiendo seed"

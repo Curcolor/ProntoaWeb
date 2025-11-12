@@ -3,8 +3,17 @@
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🚀 ProntoaWeb cargado');
   
+  // Auto-cerrar mensajes flash después de 5 segundos
+  const flashAlerts = document.querySelectorAll('.flash-messages-container .alert');
+  flashAlerts.forEach(alert => {
+    setTimeout(() => {
+      const bsAlert = new bootstrap.Alert(alert);
+      bsAlert.close();
+    }, 5000); // 5 segundos
+  });
+  
   // Agregar animaciones de fade-in a elementos principales
-  document.querySelectorAll('.card, .alert, main > *').forEach((el, i) => {
+  document.querySelectorAll('.card, main > *').forEach((el, i) => {
     setTimeout(() => el.classList.add('fade-in'), i * 100);
   });
 });

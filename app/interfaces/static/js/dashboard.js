@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadDashboardData() {
     try {
+        console.log('🚀 Loading dashboard data...');
         showLoadingState();
         
         // Cargar pedidos y métricas en paralelo
@@ -32,20 +33,28 @@ async function loadDashboardData() {
             fetchDashboardMetrics()
         ]);
         
+        console.log('📊 Results received:', { ordersResult, metricsResult });
+        
         if (ordersResult.success) {
+            console.log('✅ Rendering kanban with orders:', ordersResult.orders?.length);
             renderKanbanBoard(ordersResult.orders);
             updateColumnCounts(ordersResult.by_status);
+        } else {
+            console.error('❌ Failed to load orders:', ordersResult.message);
         }
         
         if (metricsResult.success) {
+            console.log('✅ Updating metrics:', metricsResult.metrics);
             updateDashboardMetrics(metricsResult.metrics);
+        } else {
+            console.error('❌ Failed to load metrics:', metricsResult.message);
         }
         
         hideLoadingState();
         updateLastUpdateTime();
         
     } catch (error) {
-        console.error('Error loading dashboard:', error);
+        console.error('❌ Error loading dashboard:', error);
         showNotification('Error al cargar el dashboard', 'error');
         hideLoadingState();
     }
@@ -57,6 +66,7 @@ async function loadDashboardData() {
 
 async function fetchOrders(status = null) {
     try {
+        console.log('🔄 Fetching orders...', status ? `status=${status}` : 'all');
         const url = status ? `/api/orders?status=${status}` : '/api/orders';
         const response = await fetch(url, {
             method: 'GET',
@@ -66,7 +76,17 @@ async function fetchOrders(status = null) {
             }
         });
         
+        console.log('📦 Orders response status:', response.status);
+        
+        // Si no está autenticado, redirigir al login
+        if (response.status === 401) {
+            console.error('❌ Not authenticated, redirecting to login...');
+            window.location.href = '/login';
+            return { success: false, message: 'No autenticado' };
+        }
+        
         const data = await response.json();
+        console.log('📦 Orders data:', data);
         
         if (!response.ok) {
             throw new Error(data.message || 'Error al cargar pedidos');
@@ -74,13 +94,14 @@ async function fetchOrders(status = null) {
         
         return data;
     } catch (error) {
-        console.error('Error fetching orders:', error);
+        console.error('❌ Error fetching orders:', error);
         return { success: false, message: error.message };
     }
 }
 
 async function fetchDashboardMetrics() {
     try {
+        console.log('🔄 Fetching dashboard metrics...');
         const response = await fetch('/api/kpis/dashboard', {
             method: 'GET',
             credentials: 'include',
@@ -89,7 +110,17 @@ async function fetchDashboardMetrics() {
             }
         });
         
+        console.log('📊 Metrics response status:', response.status);
+        
+        // Si no está autenticado, redirigir al login
+        if (response.status === 401) {
+            console.error('❌ Not authenticated, redirecting to login...');
+            window.location.href = '/login';
+            return { success: false, message: 'No autenticado' };
+        }
+        
         const data = await response.json();
+        console.log('📊 Metrics data:', data);
         
         if (!response.ok) {
             throw new Error(data.message || 'Error al cargar métricas');
@@ -97,7 +128,7 @@ async function fetchDashboardMetrics() {
         
         return data;
     } catch (error) {
-        console.error('Error fetching metrics:', error);
+        console.error('❌ Error fetching metrics:', error);
         return { success: false, message: error.message };
     }
 }
@@ -160,7 +191,9 @@ function renderKanbanBoard(orders) {
         received: [],
         preparing: [],
         ready: [],
-        sent: []
+        sent: [],
+        paid: [],
+        closed: []
     };
     
     orders.forEach(order => {
@@ -242,7 +275,9 @@ function updateColumnCounts(byStatus) {
         received: 'Recibidos',
         preparing: 'En Preparación',
         ready: 'Listos',
-        sent: 'Enviados'
+        sent: 'Enviados',
+        paid: 'Pagados',
+        closed: 'Cerrados'
     };
     
     Object.keys(statusMap).forEach(status => {
@@ -261,13 +296,14 @@ function updateDashboardMetrics(metrics) {
     // Actualizar pedidos de hoy
     const ordersToday = document.getElementById('orders-today');
     if (ordersToday) {
-        ordersToday.textContent = metrics.orders_today || 0;
+        ordersToday.textContent = parseInt(metrics.orders_today) || 0;
     }
     
     // Actualizar tiempo promedio de respuesta
     const avgResponse = document.getElementById('avg-response-time');
     if (avgResponse) {
-        avgResponse.textContent = (metrics.avg_response_time || 0).toFixed(1) + ' min';
+        const avgTime = parseFloat(metrics.avg_response_time) || 0;
+        avgResponse.textContent = avgTime.toFixed(1) + ' min';
     }
     
     // Actualizar ventas de hoy
@@ -279,7 +315,8 @@ function updateDashboardMetrics(metrics) {
     // Actualizar satisfacción
     const satisfaction = document.getElementById('satisfaction');
     if (satisfaction) {
-        satisfaction.textContent = (metrics.satisfaction || 0).toFixed(1) + '%';
+        const satisfactionValue = parseFloat(metrics.satisfaction) || 0;
+        satisfaction.textContent = satisfactionValue.toFixed(1) + '%';
     }
 }
 

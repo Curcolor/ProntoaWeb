@@ -4,7 +4,7 @@ Endpoints para gestión de trabajadores y sus acciones.
 """
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
-from datetime import datetime
+from datetime import datetime, timezone
 from app.extensions import db
 from app.data.models import Worker, Order, Notification
 from app.services.worker_service import WorkerService
@@ -381,7 +381,7 @@ def mark_order_ready(order_id):
         
         # Cambiar estado a 'ready'
         order.status = 'ready'
-        order.ready_at = datetime.utcnow()
+        order.ready_at = lambda: datetime.now(timezone.utc)()
         
         # Calcular tiempo de preparación
         if order.accepted_at:

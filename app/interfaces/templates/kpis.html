@@ -38,7 +38,7 @@
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
             </a>
-            <a href="{{ url_for('viewpages.login') }}" class="menu-item text-danger">
+            <a href="{{ url_for('viewpages.logout') }}" class="menu-item text-danger">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Salir</span>
             </a>
@@ -74,15 +74,15 @@
                     <div class="kpi-icon">
                         <i class="fas fa-rocket"></i>
                     </div>
-                    <div class="kpi-trend positive">
+                    <div class="kpi-trend positive" id="response-time-trend">
                         <i class="fas fa-arrow-up"></i>
-                        <span>+72%</span>
+                        <span id="response-time-change">+72%</span>
                     </div>
                 </div>
                 <div class="kpi-content">
-                    <h3 class="kpi-value">3.2min</h3>
+                    <h3 class="kpi-value" id="response-time-value">3.2min</h3>
                     <p class="kpi-label">Tiempo Promedio de Respuesta</p>
-                    <small class="kpi-comparison">vs 18 min anterior</small>
+                    <small class="kpi-comparison" id="response-time-comparison">vs 18 min anterior</small>
                 </div>
             </div>
 
@@ -91,15 +91,15 @@
                     <div class="kpi-icon">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <div class="kpi-trend positive">
+                    <div class="kpi-trend positive" id="orders-trend">
                         <i class="fas fa-arrow-up"></i>
-                        <span>+45%</span>
+                        <span id="orders-change">+45%</span>
                     </div>
                 </div>
                 <div class="kpi-content">
-                    <h3 class="kpi-value">287</h3>
+                    <h3 class="kpi-value" id="orders-value">287</h3>
                     <p class="kpi-label">Pedidos Procesados</p>
-                    <small class="kpi-comparison">vs 198 mes anterior</small>
+                    <small class="kpi-comparison" id="orders-comparison">vs 198 mes anterior</small>
                 </div>
             </div>
 
@@ -108,15 +108,15 @@
                     <div class="kpi-icon">
                         <i class="fas fa-percentage"></i>
                     </div>
-                    <div class="kpi-trend positive">
+                    <div class="kpi-trend positive" id="conversion-trend">
                         <i class="fas fa-arrow-up"></i>
-                        <span>+28%</span>
+                        <span id="conversion-change">+28%</span>
                     </div>
                 </div>
                 <div class="kpi-content">
-                    <h3 class="kpi-value">94.8%</h3>
+                    <h3 class="kpi-value" id="conversion-value">94.8%</h3>
                     <p class="kpi-label">Tasa de Conversión</p>
-                    <small class="kpi-comparison">vs 74% anterior</small>
+                    <small class="kpi-comparison" id="conversion-comparison">vs 74% anterior</small>
                 </div>
             </div>
 
@@ -125,15 +125,15 @@
                     <div class="kpi-icon">
                         <i class="fas fa-smile"></i>
                     </div>
-                    <div class="kpi-trend positive">
+                    <div class="kpi-trend positive" id="satisfaction-trend">
                         <i class="fas fa-arrow-up"></i>
-                        <span>+15%</span>
+                        <span id="satisfaction-change">+15%</span>
                     </div>
                 </div>
                 <div class="kpi-content">
-                    <h3 class="kpi-value">4.8/5</h3>
+                    <h3 class="kpi-value" id="satisfaction-value">4.8/5</h3>
                     <p class="kpi-label">Satisfacción del Cliente</p>
-                    <small class="kpi-comparison">vs 4.2 anterior</small>
+                    <small class="kpi-comparison" id="satisfaction-comparison">vs 4.2 anterior</small>
                 </div>
             </div>
         </div>
@@ -169,13 +169,13 @@
                                     <div class="metric-bars">
                                         <div class="metric-bar before">
                                             <span class="bar-label">Antes</span>
-                                            <div class="bar-fill" style="width: 90%"></div>
-                                            <span class="bar-value">18 min</span>
+                                            <div class="bar-fill" id="response-before-bar" style="width: 90%"></div>
+                                            <span class="bar-value" id="response-before-value">18 min</span>
                                         </div>
                                         <div class="metric-bar after">
                                             <span class="bar-label">Después</span>
-                                            <div class="bar-fill" style="width: 18%"></div>
-                                            <span class="bar-value">3.2 min</span>
+                                            <div class="bar-fill" id="response-after-bar" style="width: 18%"></div>
+                                            <span class="bar-value" id="response-after-value">3.2 min</span>
                                         </div>
                                     </div>
                                 </div>
@@ -187,13 +187,13 @@
                                     <div class="metric-bars">
                                         <div class="metric-bar before">
                                             <span class="bar-label">Antes</span>
-                                            <div class="bar-fill warning" style="width: 70%"></div>
-                                            <span class="bar-value">35%</span>
+                                            <div class="bar-fill warning" id="abandonment-before-bar" style="width: 70%"></div>
+                                            <span class="bar-value" id="abandonment-before-value">35%</span>
                                         </div>
                                         <div class="metric-bar after">
                                             <span class="bar-label">Después</span>
-                                            <div class="bar-fill success" style="width: 12%"></div>
-                                            <span class="bar-value">6%</span>
+                                            <div class="bar-fill success" id="abandonment-after-bar" style="width: 12%"></div>
+                                            <span class="bar-value" id="abandonment-after-value">6%</span>
                                         </div>
                                     </div>
                                 </div>
@@ -205,13 +205,13 @@
                                     <div class="metric-bars">
                                         <div class="metric-bar before">
                                             <span class="bar-label">Antes</span>
-                                            <div class="bar-fill danger" style="width: 85%"></div>
-                                            <span class="bar-value">85%</span>
+                                            <div class="bar-fill danger" id="workload-before-bar" style="width: 85%"></div>
+                                            <span class="bar-value" id="workload-before-value">85%</span>
                                         </div>
                                         <div class="metric-bar after">
                                             <span class="bar-label">Después</span>
-                                            <div class="bar-fill success" style="width: 35%"></div>
-                                            <span class="bar-value">35%</span>
+                                            <div class="bar-fill success" id="workload-after-bar" style="width: 35%"></div>
+                                            <span class="bar-value" id="workload-after-value">35%</span>
                                         </div>
                                     </div>
                                 </div>
@@ -234,9 +234,9 @@
                                     <i class="fas fa-cogs"></i>
                                 </div>
                                 <div class="metric-data">
-                                    <span class="metric-value">98.5%</span>
+                                    <span class="metric-value" id="automation-rate-value">98.5%</span>
                                     <span class="metric-label">Automatización</span>
-                                    <span class="metric-change positive">+68%</span>
+                                    <span class="metric-change positive" id="automation-rate-change">+68%</span>
                                 </div>
                             </div>
 
@@ -245,9 +245,9 @@
                                     <i class="fas fa-clock"></i>
                                 </div>
                                 <div class="metric-data">
-                                    <span class="metric-value">42h</span>
+                                    <span class="metric-value" id="time-saved-value">42h</span>
                                     <span class="metric-label">Tiempo Ahorrado/Semana</span>
-                                    <span class="metric-change positive">+350%</span>
+                                    <span class="metric-change positive" id="time-saved-change">+350%</span>
                                 </div>
                             </div>
 
@@ -256,9 +256,9 @@
                                     <i class="fas fa-bullseye"></i>
                                 </div>
                                 <div class="metric-data">
-                                    <span class="metric-value">99.2%</span>
+                                    <span class="metric-value" id="ai-accuracy-value">99.2%</span>
                                     <span class="metric-label">Precisión IA</span>
-                                    <span class="metric-change positive">+25%</span>
+                                    <span class="metric-change positive" id="ai-accuracy-change">+25%</span>
                                 </div>
                             </div>
 
@@ -267,9 +267,9 @@
                                     <i class="fas fa-exclamation-triangle"></i>
                                 </div>
                                 <div class="metric-data">
-                                    <span class="metric-value">0.8%</span>
+                                    <span class="metric-value" id="error-rate-value">0.8%</span>
                                     <span class="metric-label">Tasa de Errores</span>
-                                    <span class="metric-change negative">-89%</span>
+                                    <span class="metric-change negative" id="error-rate-change">-89%</span>
                                 </div>
                             </div>
                         </div>
@@ -286,11 +286,11 @@
                                 </div>
                                 <div class="financial-data">
                                     <h5>Incremento en Ventas</h5>
-                                    <span class="financial-value">+$2.4M</span>
+                                    <span class="financial-value" id="revenue-impact-value">+$2.4M</span>
                                     <span class="financial-period">Este mes</span>
                                     <div class="financial-trend">
                                         <i class="fas fa-arrow-up"></i>
-                                        <span>+32% vs mes anterior</span>
+                                        <span id="revenue-impact-trend">+32% vs mes anterior</span>
                                     </div>
                                 </div>
                             </div>
@@ -301,11 +301,11 @@
                                 </div>
                                 <div class="financial-data">
                                     <h5>Ahorro Operativo</h5>
-                                    <span class="financial-value">$850K</span>
+                                    <span class="financial-value" id="cost-reduction-value">$850K</span>
                                     <span class="financial-period">Mensual</span>
                                     <div class="financial-trend">
                                         <i class="fas fa-arrow-up"></i>
-                                        <span>Reducción de costos</span>
+                                        <span id="cost-reduction-trend">Reducción de costos</span>
                                     </div>
                                 </div>
                             </div>
@@ -316,11 +316,11 @@
                                 </div>
                                 <div class="financial-data">
                                     <h5>ROI</h5>
-                                    <span class="financial-value">485%</span>
+                                    <span class="financial-value" id="roi-value">485%</span>
                                     <span class="financial-period">Retorno de Inversión</span>
                                     <div class="financial-trend">
                                         <i class="fas fa-trophy"></i>
-                                        <span>Excelente rendimiento</span>
+                                        <span id="roi-trend">Excelente rendimiento</span>
                                     </div>
                                 </div>
                             </div>

@@ -2,7 +2,7 @@
 Servicio de gestión de pedidos.
 Maneja la creación, actualización y seguimiento de pedidos.
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from sqlalchemy import func, and_, or_
 from app.extensions import db
 from app.data.models import Order, OrderItem, Customer, Product, Business
@@ -121,11 +121,11 @@ class OrderService:
             
             old_status = order.status
             order.status = new_status
-            order.updated_at = datetime.utcnow()
+            order.updated_at = lambda: datetime.now(timezone.utc)()
             
             # Actualizar tiempos según el estado
             if new_status == 'preparing' and not order.accepted_at:
-                order.accepted_at = datetime.utcnow()
+                order.accepted_at = lambda: datetime.now(timezone.utc)()
                 # Calcular tiempo de respuesta
                 if order.created_at:
                     order.response_time_seconds = int(
@@ -133,7 +133,7 @@ class OrderService:
                     )
             
             elif new_status == 'ready' and not order.ready_at:
-                order.ready_at = datetime.utcnow()
+                order.ready_at = lambda: datetime.now(timezone.utc)()
                 # Calcular tiempo de preparación
                 if order.accepted_at:
                     order.preparation_time_seconds = int(
@@ -141,7 +141,7 @@ class OrderService:
                     )
             
             elif new_status in ['sent', 'paid', 'closed'] and not order.delivered_at:
-                order.delivered_at = datetime.utcnow()
+                order.delivered_at = lambda: datetime.now(timezone.utc)()
             
             db.session.commit()
             
@@ -219,7 +219,7 @@ class OrderService:
         Returns:
             int: Cantidad de pedidos del día
         """
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start = lambda: datetime.now(timezone.utc)().replace(hour=0, minute=0, second=0, microsecond=0)
         
         return Order.query.filter(
             and_(
@@ -240,7 +240,7 @@ class OrderService:
         Returns:
             float: Tiempo promedio en minutos
         """
-        start_date = datetime.utcnow() - timedelta(days=days)
+        start_date = lambda: datetime.now(timezone.utc)() - timedelta(days=days)
         
         avg_seconds = db.session.query(
             func.avg(Order.response_time_seconds)
@@ -265,7 +265,7 @@ class OrderService:
         Returns:
             float: Total de ventas
         """
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start = lambda: datetime.now(timezone.utc)().replace(hour=0, minute=0, second=0, microsecond=0)
         
         total = db.session.query(
             func.sum(Order.total_amount)
@@ -290,7 +290,7 @@ class OrderService:
         Returns:
             str: Número de pedido único
         """
-        today = datetime.utcnow()
+        today = lambda: datetime.now(timezone.utc)()
         prefix = f"{business_id}{today.strftime('%Y%m%d')}"
         
         # Contar pedidos del día

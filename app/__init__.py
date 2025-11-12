@@ -49,10 +49,10 @@ def create_app(config_name):
     # Registrar procesador de contexto para mensajes flash
     @app.context_processor
     def inject_flash_categories():
-        """Inyecta categorías de flash messages."""
-        return {
-            'get_flashed_messages': lambda: app.jinja_env.globals['get_flashed_messages']()
-        }
+        """Inyecta categorías de flash messages en el contexto de Jinja."""
+        # No es necesario sobrescribir get_flashed_messages, 
+        # Flask ya lo proporciona por defecto
+        return {}
     
     # Mostrar rutas registradas en la consola (útil para debug)
     # Solo mostrar si no es un restart del servidor

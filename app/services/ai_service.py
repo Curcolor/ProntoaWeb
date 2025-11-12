@@ -1,6 +1,5 @@
 """
-Servicio de Inteligencia Artificial para procesamiento de pedidos.
-Utiliza Perplexity AI (compatible con API de OpenAI) para entender y procesar pedidos.
+Servicio de Inteligencia Artificial para procesamiento de pedidos..
 """
 import openai
 import json
@@ -234,10 +233,10 @@ Responde JSON:
             str: Respuesta generada
         """
         responses = {
-            'saludo': '¡Hola! 👋 Bienvenido. ¿En qué puedo ayudarte hoy?',
+            'saludo': '¡Hola! Bienvenido. ¿En qué puedo ayudarte hoy?',
             'consulta': 'Claro, con gusto te ayudo. ¿Qué necesitas saber?',
             'queja': 'Lamento mucho los inconvenientes. Déjame ayudarte a resolver esto.',
-            'despedida': '¡Hasta pronto! Gracias por tu preferencia. 😊'
+            'despedida': '¡Hasta pronto! Gracias por tu preferencia.'
         }
         
         return responses.get(intent, 'Estoy aquí para ayudarte. ¿Qué necesitas?')

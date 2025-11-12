@@ -2,7 +2,7 @@
 Servicio de gestión de trabajadores.
 Maneja CRUD, asignación de pedidos y permisos.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from app.extensions import db
 from app.data.models import Worker, Order, Business
 
@@ -11,7 +11,7 @@ class WorkerService:
     """Servicio para gestión de trabajadores."""
     
     @staticmethod
-    def create_worker(business_id, email, password, full_name, phone, role='worker'):
+    def create_worker(business_id, email, password, full_name, phone, worker_type='planta'):
         """
         Crea un nuevo trabajador.
         
@@ -21,7 +21,7 @@ class WorkerService:
             password: Contraseña
             full_name: Nombre completo
             phone: Teléfono
-            role: Rol del trabajador (worker, supervisor, manager)
+            worker_type: Tipo de trabajador ('planta' o 'repartidor')
             
         Returns:
             tuple: (success: bool, message: str, worker: Worker)
@@ -31,6 +31,10 @@ class WorkerService:
             business = Business.query.get(business_id)
             if not business:
                 return False, 'Negocio no encontrado', None
+            
+            # Validar worker_type
+            if worker_type not in ['planta', 'repartidor']:
+                return False, 'Tipo de trabajador inválido. Debe ser "planta" o "repartidor"', None
             
             # Verificar email único
             if Worker.query.filter_by(email=email).first():
@@ -46,10 +50,8 @@ class WorkerService:
                 email=email,
                 full_name=full_name,
                 phone=phone,
-                role=role,
-                is_active=True,
-                can_mark_ready=True,
-                can_cancel_orders=(role in ['supervisor', 'manager'])
+                worker_type=worker_type,
+                is_active=True
             )
             worker.set_password(password)
             
@@ -114,15 +116,18 @@ class WorkerService:
             if not worker:
                 return False, 'Trabajador no encontrado', None
             
+            # Validar worker_type si se proporciona
+            if 'worker_type' in kwargs and kwargs['worker_type'] not in ['planta', 'repartidor']:
+                return False, 'Tipo de trabajador inválido. Debe ser "planta" o "repartidor"', None
+            
             # Actualizar campos permitidos
-            allowed_fields = ['full_name', 'phone', 'role', 'is_active', 
-                            'can_mark_ready', 'can_cancel_orders']
+            allowed_fields = ['full_name', 'phone', 'worker_type', 'is_active']
             
             for field, value in kwargs.items():
                 if field in allowed_fields and hasattr(worker, field):
                     setattr(worker, field, value)
             
-            worker.updated_at = datetime.utcnow()
+            worker.updated_at = lambda: datetime.now(timezone.utc)
             db.session.commit()
             
             return True, 'Trabajador actualizado exitosamente', worker
@@ -153,7 +158,7 @@ class WorkerService:
                 return False, 'Contraseña actual incorrecta'
             
             worker.set_password(new_password)
-            worker.updated_at = datetime.utcnow()
+            worker.updated_at = lambda: datetime.now(timezone.utc)
             db.session.commit()
             
             return True, 'Contraseña actualizada exitosamente'
@@ -179,7 +184,7 @@ class WorkerService:
                 return False, 'Trabajador no encontrado'
             
             worker.is_active = False
-            worker.updated_at = datetime.utcnow()
+            worker.updated_at = lambda: datetime.now(timezone.utc)
             db.session.commit()
             
             return True, 'Trabajador desactivado exitosamente'
@@ -369,7 +374,7 @@ class WorkerService:
                 return False, 'Credenciales inválidas', None
             
             # Actualizar último login
-            worker.last_login = datetime.utcnow()
+            worker.last_login = lambda: datetime.now(timezone.utc)
             db.session.commit()
             
             return True, 'Autenticación exitosa', worker

@@ -4,7 +4,7 @@ Ejecutar con: python -m app.scripts.seed_database
 """
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 import random
 
 # Agregar el directorio raíz al path
@@ -25,7 +25,7 @@ def seed_database():
     app = create_app(config)
     
     with app.app_context():
-        print("🌱 Iniciando seed de base de datos...")
+        print("Iniciando seed de base de datos...")
         
         # Limpiar datos existentes
         print("🧹 Limpiando datos existentes...")
@@ -33,7 +33,7 @@ def seed_database():
         db.create_all()
         
         # Crear usuario de prueba
-        print("👤 Creando usuarios...")
+        print("Creando usuarios...")
         user1 = User(
             email='admin@prontoa.com',
             full_name='Alexis Mendoza',
@@ -46,7 +46,7 @@ def seed_database():
         db.session.flush()
         
         # Crear negocio
-        print("🏪 Creando negocios...")
+        print("Creando negocios...")
         business1 = Business(
             user_id=user1.id,
             name='Panadería El Trigo Dorado',
@@ -64,7 +64,7 @@ def seed_database():
         db.session.flush()
         
         # Crear trabajadores (2 tipos: planta y repartidor)
-        print("👷 Creando trabajadores...")
+        print("Creando trabajadores...")
         workers_data = [
             # Trabajadores en planta (cocina/preparación)
             {
@@ -116,7 +116,7 @@ def seed_database():
         print(f"   ✓ {len(workers)} trabajadores creados")
         
         # Crear productos
-        print("📦 Creando productos...")
+        print("Creando productos...")
         products_data = [
             {'name': 'Pan Francés', 'price': 1500, 'category': 'Panadería', 'stock': 100},
             {'name': 'Croissant', 'price': 3500, 'category': 'Panadería', 'stock': 50},
@@ -145,7 +145,7 @@ def seed_database():
         db.session.flush()
         
         # Crear clientes
-        print("👥 Creando clientes...")
+        print("Creando clientes...")
         customers_data = [
             {'phone': '+573101234567', 'name': 'María García', 'address': 'Calle 80 #45-23'},
             {'phone': '+573102345678', 'name': 'Carlos Rodríguez', 'address': 'Carrera 50 #70-15'},
@@ -168,17 +168,80 @@ def seed_database():
         db.session.flush()
         
         # Crear pedidos
-        print("📋 Creando pedidos...")
+        print("Creando pedidos...")
         statuses = ['received', 'preparing', 'ready', 'sent', 'paid', 'closed']
         
-        for i in range(50):
+        # Primero, crear 5 pedidos para HOY (para que aparezcan en las métricas)
+        for i in range(5):
+            customer = random.choice(customers)
+            customer.total_orders += 1
+            
+            # Pedidos de hoy (últimas 8 horas)
+            hours_ago = random.randint(1, 8)
+            created_at = datetime.now(timezone.utc) - timedelta(hours=hours_ago)
+            
+            order_number = f"{business1.id}{created_at.strftime('%Y%m%d')}{i+1:04d}"
+            
+            # Estados activos para pedidos de hoy
+            status = random.choice(['received', 'preparing', 'ready', 'sent'])
+            
+            order = Order(
+                order_number=order_number,
+                business_id=business1.id,
+                customer_id=customer.id,
+                status=status,
+                order_type=random.choice(['delivery', 'pickup']),
+                delivery_address=customer.address if random.random() > 0.3 else None,
+                created_at=created_at,
+                total_amount=0
+            )
+            
+            # Tiempos según estado
+            if status in ['preparing', 'ready', 'sent']:
+                order.accepted_at = created_at + timedelta(minutes=random.randint(1, 5))
+                order.response_time_seconds = random.randint(30, 300)
+            
+            if status in ['ready', 'sent']:
+                order.ready_at = order.accepted_at + timedelta(minutes=random.randint(15, 45))
+                order.preparation_time_seconds = random.randint(900, 2700)
+            
+            if status == 'sent':
+                order.sent_at = order.ready_at + timedelta(minutes=random.randint(5, 15))
+            
+            db.session.add(order)
+            db.session.flush()
+            
+            # Agregar items al pedido
+            num_items = random.randint(1, 4)
+            total_amount = 0
+            
+            selected_products = random.sample(products, num_items)
+            for product in selected_products:
+                quantity = random.randint(1, 3)
+                subtotal = product.price * quantity
+                total_amount += subtotal
+                
+                order_item = OrderItem(
+                    order_id=order.id,
+                    product_id=product.id,
+                    product_name=product.name,
+                    quantity=quantity,
+                    unit_price=product.price,
+                    subtotal=subtotal
+                )
+                db.session.add(order_item)
+            
+            order.total_amount = total_amount
+        
+        # Luego, crear 45 pedidos históricos (últimos 30 días)
+        for i in range(5, 50):
             # Seleccionar cliente aleatorio
             customer = random.choice(customers)
             customer.total_orders += 1
             
-            # Fecha de creación (últimos 30 días)
-            days_ago = random.randint(0, 30)
-            created_at = datetime.utcnow() - timedelta(days=days_ago, hours=random.randint(0, 23))
+            # Fecha de creación (últimos 30 días, excluyendo hoy)
+            days_ago = random.randint(1, 30)
+            created_at = datetime.now(timezone.utc) - timedelta(days=days_ago, hours=random.randint(0, 23))
             
             # Generar número de pedido
             order_number = f"{business1.id}{created_at.strftime('%Y%m%d')}{i+1:04d}"
@@ -251,11 +314,10 @@ def seed_database():
                 )
                 db.session.add(payment)
             
-            # Asignar pedidos en preparación o listos a trabajadores
-            if status in ['preparing', 'ready'] and workers:
-                # Asignar aleatoriamente a un trabajador
-                assigned_worker = random.choice(workers)
-                order.assigned_workers.append(assigned_worker)
+            # TODO: Asignar pedidos a trabajadores cuando se implemente la relación many-to-many
+            # if status in ['preparing', 'ready'] and workers:
+            #     assigned_worker = random.choice(workers)
+            #     order.assigned_workers.append(assigned_worker)
         
         # Commit de todos los cambios
         print("💾 Guardando cambios...")
@@ -263,29 +325,34 @@ def seed_database():
         
         print("✅ Base de datos inicializada exitosamente!")
         print(f"\n📊 Datos creados:")
-        print(f"   👤 Usuarios: {User.query.count()}")
-        print(f"   🏪 Negocios: {Business.query.count()}")
-        print(f"   👷 Trabajadores: {Worker.query.count()}")
-        print(f"   👥 Clientes: {Customer.query.count()}")
-        print(f"   📦 Productos: {Product.query.count()}")
-        print(f"   📋 Pedidos: {Order.query.count()}")
-        print(f"   💰 Pagos: {Payment.query.count()}")
-        print(f"\n🔐 Credenciales de prueba:")
+        print(f"   Usuarios: {User.query.count()}")
+        print(f"   Negocios: {Business.query.count()}")
+        print(f"   Trabajadores: {Worker.query.count()}")
+        print(f"   Clientes: {Customer.query.count()}")
+        print(f"   Productos: {Product.query.count()}")
+        print(f"   Pedidos: {Order.query.count()}")
+        print(f"   Pagos: {Payment.query.count()}")
+        print(f"\nCredenciales de prueba:")
         print(f"   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        print(f"   👤 ADMIN:")
+        print(f"    ADMIN:")
         print(f"      Email: admin@prontoa.com")
         print(f"      Password: admin123")
         print(f"   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        print(f"   👷 TRABAJADORES:")
-        print(f"      1. Worker:")
-        print(f"         Email: maria.worker@prontoa.com")
+        print(f"    TRABAJADORES EN PLANTA (Cocina):")
+        print(f"      1. María Pérez:")
+        print(f"         Email: maria.planta@prontoa.com")
         print(f"         Password: worker123")
-        print(f"      2. Supervisor:")
-        print(f"         Email: carlos.supervisor@prontoa.com")
-        print(f"         Password: super123")
-        print(f"      3. Manager:")
-        print(f"         Email: juan.manager@prontoa.com")
-        print(f"         Password: manager123")
+        print(f"      2. Carlos López:")
+        print(f"         Email: carlos.planta@prontoa.com")
+        print(f"         Password: worker123")
+        print(f"   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print(f"    TRABAJADORES REPARTIDORES (Delivery):")
+        print(f"      3. Juan García:")
+        print(f"         Email: juan.repartidor@prontoa.com")
+        print(f"         Password: worker123")
+        print(f"      4. Ana Rodríguez:")
+        print(f"         Email: ana.repartidor@prontoa.com")
+        print(f"         Password: worker123")
         print(f"   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 
