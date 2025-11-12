@@ -60,14 +60,14 @@
             <!-- Encabezado del perfil -->
             <div class="profile-header">
                 <div class="profile-avatar">
-                    <div class="avatar-circle">A</div>
+                    <div class="avatar-circle" id="user-avatar-initial">A</div>
                 </div>
                 <div class="profile-info">
-                    <h1 class="profile-name">Alexis Mendoza</h1>
-                    <p class="profile-subtitle">Propietario - Panadería El Trigo Dorado</p>
+                    <h1 class="profile-name" id="profile-header-name">Alexis Mendoza</h1>
+                    <p class="profile-subtitle" id="profile-header-subtitle">Propietario - Panadería El Trigo Dorado</p>
                     <div class="profile-badges">
-                        <span class="badge badge-success">
-                            <i class="fas fa-store"></i> Panadería
+                        <span class="badge badge-success" id="business-type-badge">
+                            <i class="fas fa-store"></i> <span id="badge-business-type">Panadería</span>
                         </span>
                         <span class="badge badge-info">
                             <i class="fab fa-whatsapp"></i> WhatsApp Activo
@@ -91,7 +91,7 @@
                         </div>
                         <div class="info-content">
                             <span class="info-label">Email</span>
-                            <span class="info-value">carlos.mendoza@email.com</span>
+                            <span class="info-value" id="user-email">carlos.mendoza@email.com</span>
                         </div>
                     </div>
                     <div class="info-item">
@@ -100,7 +100,7 @@
                         </div>
                         <div class="info-content">
                             <span class="info-label">Teléfono</span>
-                            <span class="info-value">+57 300 123 4567</span>
+                            <span class="info-value" id="user-phone">+57 300 123 4567</span>
                         </div>
                     </div>
                     <div class="info-item">
@@ -109,7 +109,7 @@
                         </div>
                         <div class="info-content">
                             <span class="info-label">Ubicación</span>
-                            <span class="info-value">Barrio El Prado, Barranquilla</span>
+                            <span class="info-value" id="business-location">Barrio El Prado, Barranquilla</span>
                         </div>
                     </div>
                     <div class="info-item">
@@ -118,7 +118,7 @@
                         </div>
                         <div class="info-content">
                             <span class="info-label">Negocio</span>
-                            <span class="info-value">Panadería de Alexis TEST</span>
+                            <span class="info-value" id="business-name">Panadería de Alexis TEST</span>
                         </div>
                     </div>
                 </div>
@@ -136,7 +136,7 @@
                             <i class="fas fa-clock"></i>
                         </div>
                         <div class="metric-content">
-                            <div class="metric-value">3.2min</div>
+                            <div class="metric-value"><span id="metric-avg-response">--</span></div>
                             <div class="metric-label">Tiempo Promedio</div>
                             <div class="metric-sublabel">Respuesta a pedidos</div>
                         </div>
@@ -146,10 +146,10 @@
                             <i class="fas fa-shopping-cart"></i>
                         </div>
                         <div class="metric-content">
-                            <div class="metric-value">147</div>
+                            <div class="metric-value"><span id="metric-orders-today">--</span></div>
                             <div class="metric-label">Pedidos</div>
                             <div class="metric-sublabel">Gestionados</div>
-                            <div class="metric-period">Este mes</div>
+                            <div class="metric-period">Hoy</div>
                         </div>
                     </div>
                     <div class="metric-item warning">
@@ -157,7 +157,7 @@
                             <i class="fas fa-star"></i>
                         </div>
                         <div class="metric-content">
-                            <div class="metric-value">4.8</div>
+                            <div class="metric-value"><span id="metric-satisfaction">--</span></div>
                             <div class="metric-label">Satisfacción</div>
                             <div class="metric-sublabel">Promedio cliente</div>
                         </div>
@@ -178,7 +178,7 @@
                         </div>
                         <div class="optimization-content">
                             <span class="optimization-text">Reducción de tiempo de respuesta</span>
-                            <span class="optimization-value">-45%</span>
+                            <span class="optimization-value"><span id="optimization-response-time">--</span></span>
                         </div>
                     </div>
                     <div class="optimization-item positive">
@@ -187,7 +187,7 @@
                         </div>
                         <div class="optimization-content">
                             <span class="optimization-text">Aumento en ventas</span>
-                            <span class="optimization-value">+32%</span>
+                            <span class="optimization-value"><span id="optimization-sales">--</span></span>
                         </div>
                     </div>
                     <div class="optimization-item positive">
@@ -196,7 +196,7 @@
                         </div>
                         <div class="optimization-content">
                             <span class="optimization-text">Mejora en satisfacción</span>
-                            <span class="optimization-value">+28%</span>
+                            <span class="optimization-value"><span id="optimization-satisfaction">--</span></span>
                         </div>
                     </div>
                 </div>

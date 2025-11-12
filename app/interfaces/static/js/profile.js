@@ -1,7 +1,5 @@
 // Profile JavaScript - Conectado a API REST real
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Profile page loaded - Using real API');
-    
     // Cargar datos del usuario y métricas
     loadProfileData();
     
@@ -26,19 +24,22 @@ async function loadProfileData() {
     try {
         showLoadingState();
         
-        // Cargar datos del usuario y métricas en paralelo
-        const [userResult, metricsResult] = await Promise.all([
+        // Cargar datos del usuario, negocio y métricas KPI completas
+        const [userResult, kpiResult] = await Promise.all([
             fetchCurrentUser(),
-            fetchDashboardMetrics()
+            fetchKPISummary()
         ]);
         
         if (userResult.success) {
             updateProfileInfo(userResult.user);
-            updateBusinessInfo(userResult.business);
+            if (userResult.business) {
+                updateBusinessInfo(userResult.business);
+            }
         }
         
-        if (metricsResult.success) {
-            updateProfileMetrics(metricsResult.metrics);
+        if (kpiResult.success && kpiResult.summary) {
+            updateProfileMetrics(kpiResult.summary.dashboard);
+            updateOptimizationMetrics(kpiResult.summary.comparisons);
         }
         
         hideLoadingState();
@@ -52,10 +53,11 @@ async function loadProfileData() {
 
 async function loadProfileMetrics() {
     try {
-        const result = await fetchDashboardMetrics();
+        const result = await fetchKPISummary();
         
-        if (result.success) {
-            updateProfileMetrics(result.metrics);
+        if (result.success && result.summary) {
+            updateProfileMetrics(result.summary.dashboard);
+            updateOptimizationMetrics(result.summary.comparisons);
         }
     } catch (error) {
         console.error('Error loading metrics:', error);
@@ -112,6 +114,29 @@ async function fetchDashboardMetrics() {
     }
 }
 
+async function fetchKPISummary() {
+    try {
+        const response = await fetch('/api/kpis/summary', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Error al cargar métricas');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error fetching KPI summary:', error);
+        return { success: false, message: error.message };
+    }
+}
+
 async function updateUserProfile(profileData) {
     try {
         const response = await fetch('/api/auth/profile', {
@@ -143,10 +168,16 @@ async function updateUserProfile(profileData) {
 function updateProfileInfo(user) {
     if (!user) return;
     
-    // Nombre completo
-    const fullNameEl = document.getElementById('user-full-name');
-    if (fullNameEl && user.full_name) {
-        fullNameEl.textContent = user.full_name;
+    // Nombre completo en header
+    const headerNameEl = document.getElementById('profile-header-name');
+    if (headerNameEl && user.full_name) {
+        headerNameEl.textContent = user.full_name;
+    }
+    
+    // Inicial del avatar
+    const avatarInitialEl = document.getElementById('user-avatar-initial');
+    if (avatarInitialEl && user.full_name) {
+        avatarInitialEl.textContent = user.full_name.charAt(0).toUpperCase();
     }
     
     // Email
@@ -160,18 +191,6 @@ function updateProfileInfo(user) {
     if (phoneEl && user.phone) {
         phoneEl.textContent = user.phone;
     }
-    
-    // Fecha de registro
-    const registeredEl = document.getElementById('user-registered');
-    if (registeredEl && user.created_at) {
-        registeredEl.textContent = formatDate(user.created_at);
-    }
-    
-    // Último login
-    const lastLoginEl = document.getElementById('user-last-login');
-    if (lastLoginEl && user.last_login) {
-        lastLoginEl.textContent = formatDate(user.last_login);
-    }
 }
 
 function updateBusinessInfo(business) {
@@ -183,48 +202,74 @@ function updateBusinessInfo(business) {
         businessNameEl.textContent = business.name;
     }
     
-    // Tipo de negocio
-    const businessTypeEl = document.getElementById('business-type');
-    if (businessTypeEl && business.business_type) {
-        businessTypeEl.textContent = getBusinessTypeLabel(business.business_type);
+    // Subtítulo del header (Propietario - Negocio)
+    const headerSubtitleEl = document.getElementById('profile-header-subtitle');
+    if (headerSubtitleEl && business.name) {
+        headerSubtitleEl.textContent = `Propietario - ${business.name}`;
     }
     
-    // Ubicación
+    // Tipo de negocio en badge
+    const badgeTypeEl = document.getElementById('badge-business-type');
+    if (badgeTypeEl && business.business_type) {
+        badgeTypeEl.textContent = getBusinessTypeLabel(business.business_type);
+    }
+    
+    // Ubicación (combinar address y city)
     const locationEl = document.getElementById('business-location');
-    if (locationEl && business.location) {
-        locationEl.textContent = business.location;
-    }
-    
-    // Plan de suscripción
-    const planEl = document.getElementById('subscription-plan');
-    if (planEl && business.subscription_plan) {
-        planEl.textContent = getPlanLabel(business.subscription_plan);
+    if (locationEl) {
+        const location = business.city ? `${business.address || ''}, ${business.city}` : business.address;
+        if (location) {
+            locationEl.textContent = location;
+        }
     }
 }
 
 function updateProfileMetrics(metrics) {
+    if (!metrics) return;
+    
     // Tiempo promedio de respuesta
-    const avgResponseEl = document.querySelector('.metric-item.primary .metric-value');
-    if (avgResponseEl && metrics.avg_response_time !== undefined) {
-        avgResponseEl.textContent = metrics.avg_response_time.toFixed(1) + 'min';
+    const avgResponseEl = document.getElementById('metric-avg-response');
+    if (avgResponseEl) {
+        const minutes = parseFloat(metrics.avg_response_time) || 0;
+        avgResponseEl.textContent = minutes.toFixed(1) + 'min';
     }
     
     // Pedidos procesados hoy
-    const ordersEl = document.querySelector('.metric-item.info .metric-value');
-    if (ordersEl && metrics.orders_today !== undefined) {
-        ordersEl.textContent = metrics.orders_today;
+    const ordersEl = document.getElementById('metric-orders-today');
+    if (ordersEl) {
+        ordersEl.textContent = parseInt(metrics.orders_today) || 0;
     }
     
     // Satisfacción del cliente
-    const satisfactionEl = document.querySelector('.metric-item.success .metric-value');
-    if (satisfactionEl && metrics.satisfaction !== undefined) {
-        satisfactionEl.textContent = metrics.satisfaction.toFixed(1) + '%';
+    const satisfactionEl = document.getElementById('metric-satisfaction');
+    if (satisfactionEl) {
+        const satisfaction = parseFloat(metrics.satisfaction) || 0;
+        satisfactionEl.textContent = satisfaction.toFixed(1);
+    }
+}
+
+function updateOptimizationMetrics(comparisons) {
+    if (!comparisons) return;
+    
+    // Reducción de tiempo de respuesta
+    const responseTimeEl = document.getElementById('optimization-response-time');
+    if (responseTimeEl && comparisons.response_time) {
+        const reduction = parseFloat(comparisons.response_time.change) || 0;
+        responseTimeEl.textContent = (reduction >= 0 ? '+' : '') + reduction.toFixed(1) + '%';
     }
     
-    // Ventas de hoy
-    const salesEl = document.querySelector('.metric-item.warning .metric-value');
-    if (salesEl && metrics.sales_today !== undefined) {
-        salesEl.textContent = formatCurrency(metrics.sales_today);
+    // Aumento en ventas
+    const salesEl = document.getElementById('optimization-sales');
+    if (salesEl && comparisons.orders_processed) {
+        const increase = parseFloat(comparisons.orders_processed.change) || 0;
+        salesEl.textContent = (increase >= 0 ? '+' : '') + increase.toFixed(1) + '%';
+    }
+    
+    // Mejora en satisfacción
+    const satisfactionEl = document.getElementById('optimization-satisfaction');
+    if (satisfactionEl && comparisons.satisfaction) {
+        const improvement = parseFloat(comparisons.satisfaction.change) || 0;
+        satisfactionEl.textContent = (improvement >= 0 ? '+' : '') + improvement.toFixed(1) + '%';
     }
 }
 
