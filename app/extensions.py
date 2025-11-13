@@ -65,11 +65,32 @@ def init_extensions(app: Flask) -> None:
     ma.init_app(app)
     
     # Configurar user loader para Flask-Login
-    from app.data.models import User
+    from app.data.models import User, Worker
     
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        """Carga usuarios y trabajadores según el identificador almacenado en sesión."""
+        if not user_id:
+            return None
+        try:
+            if isinstance(user_id, str):
+                if user_id.startswith('worker-'):
+                    worker_id = int(user_id.split('-', 1)[1])
+                    return Worker.query.get(worker_id)
+                if user_id.startswith('user-'):
+                    user_id_int = int(user_id.split('-', 1)[1])
+                    return User.query.get(user_id_int)
+                # Fall back to numeric parsing for sesiones antiguas
+                numeric_id = int(user_id)
+            else:
+                numeric_id = int(user_id)
+        except (ValueError, TypeError):
+            return None
+        # Intentar primero con usuarios, luego con trabajadores (para compatibilidad)
+        user = User.query.get(numeric_id)
+        if user:
+            return user
+        return Worker.query.get(numeric_id)
     
     # Configurar variables básicas para templates
     init_template_context(app)

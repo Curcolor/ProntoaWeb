@@ -322,21 +322,32 @@ function createOrderCard(order) {
 function updateColumnCounts(byStatus) {
     const statusMap = {
         received: 'Recibidos',
-        preparing: 'En Preparación',
+        preparing: 'En preparación',
         ready: 'Listos',
-        sent: 'Enviados',
+        sent: 'En camino',
         paid: 'Pagados',
         closed: 'Cerrados'
     };
-    
+
     Object.keys(statusMap).forEach(status => {
         const column = document.querySelector(`[data-status="${status}"]`);
-        if (column) {
-            const header = column.querySelector('.column-header h3');
-            if (header) {
-                const count = byStatus[status] || 0;
-                header.textContent = `${statusMap[status]} (${count})`;
-            }
+        if (!column) {
+            return;
+        }
+
+        const headerContainer = column.querySelector('.kanban-column-header') || column.querySelector('.column-header');
+        const headerTitle = headerContainer ? headerContainer.querySelector('h3') : null;
+        const countBadge = headerContainer ? headerContainer.querySelector('.kanban-count') : column.querySelector('.kanban-count');
+        const count = byStatus[status] || 0;
+
+        if (headerTitle) {
+            headerTitle.textContent = statusMap[status];
+        }
+
+        if (countBadge) {
+            countBadge.textContent = count;
+        } else if (headerTitle) {
+            headerTitle.textContent = `${statusMap[status]} (${count})`;
         }
     });
 }

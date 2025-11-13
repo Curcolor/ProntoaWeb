@@ -3,80 +3,130 @@
 {% block title %}Mis Pedidos - Trabajador{% endblock %}
 
 {% block stylesheets %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/worker.css') }}">
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/worker_dashboard.css') }}">
 {% endblock %}
 
 {% block navbar %}
-<!-- Sin navbar para trabajadores -->
+<div class="dashboard-layout">
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <span class="brand-text">Prontoa!</span>
+            </div>
+        </div>
+
+        <div class="sidebar-menu">
+            <a href="{{ url_for('viewpages.worker_kitchen') }}" class="menu-item {% if request.endpoint == 'viewpages.worker_kitchen' %}active{% endif %}">
+                <i class="fas fa-fire"></i>
+                <span>Pedidos cocina</span>
+            </a>
+            <a href="{{ url_for('viewpages.worker_delivery') }}" class="menu-item {% if request.endpoint == 'viewpages.worker_delivery' %}active{% endif %}">
+                <i class="fas fa-motorcycle"></i>
+                <span>Pedidos entrega</span>
+            </a>
+            <a href="{{ url_for('viewpages.worker_profile') }}" class="menu-item {% if request.endpoint == 'viewpages.worker_profile' %}active{% endif %}">
+                <i class="fas fa-user"></i>
+                <span>Mi perfil</span>
+            </a>
+            <a href="{{ url_for('viewpages.logout') }}" class="menu-item text-danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="top-bar worker-top-bar">
+            <h1 class="page-title">Mis pedidos</h1>
+            <div class="top-bar-actions">
+                <span class="status-indicator online">
+                    <i class="fas fa-circle"></i>
+                    En línea
+                </span>
+                <span class="last-update">
+                    {{ 'Rol: ' + (current_user.worker_type|capitalize) if current_user.is_authenticated and current_user.worker_type else 'Portal trabajador' }}
+                </span>
+                <span class="user-avatar" title="{{ current_user.full_name if current_user.is_authenticated else 'Trabajador' }}">
+                    {{ (current_user.full_name[0] if current_user.is_authenticated and current_user.full_name) or 'T' }}
+                </span>
+            </div>
+        </div>
 {% endblock %}
 
 {% block content %}
 
-<div class="worker-layout">
-    <aside class="worker-sidebar">
-        <div class="worker-sidebar-header">
-            <h2><i class="fas fa-user-tie"></i> Portal Trabajador</h2>
-            <div class="worker-info">
-                <p><strong id="worker-name">Cargando...</strong></p>
-                <p><span id="worker-role">worker</span></p>
-            </div>
-        </div>
-        
-        <ul class="worker-menu">
-            <li>
-                <a href="/worker-orders" class="worker-menu-item active">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span>Mis Pedidos</span>
-                </a>
-            </li>
-            <li>
-                <a href="/worker-profile" class="worker-menu-item">
-                    <i class="fas fa-user"></i>
-                    <span>Mi Perfil</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="worker-menu-item" id="worker-logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Cerrar Sesión</span>
-                </a>
-            </li>
-        </ul>
-    </aside>
-    
-    <main class="worker-main">
-        <div class="worker-top-bar">
-            <h1><i class="fas fa-fire"></i> Pedidos Asignados</h1>
-            <div class="worker-actions">
-                <span id="last-refresh-time">Cargando...</span>
-                <button id="manual-refresh-btn" class="btn-refresh">
-                    <i class="fas fa-sync-alt"></i>
-                    Actualizar
-                </button>
-            </div>
-        </div>
-        
-        <div id="worker-orders-container">
-            <div class="empty-state">
-                <i class="fas fa-spinner fa-spin"></i>
-                <h3>Cargando pedidos...</h3>
-                <p>Por favor espera un momento</p>
-            </div>
-        </div>
-    </main>
-</div>
+        <div class="worker-dashboard worker-portal">
+            <section class="dashboard-header worker-top-bar">
+                <div>
+                    <h2><i class="fas fa-fire"></i> Pedidos asignados</h2>
+                    <p class="dashboard-meta mb-0">Gestiona tus pedidos y mantén actualizado el estado en tiempo real.</p>
+                </div>
+                <div class="worker-top-bar-controls">
+                    <span id="last-refresh-time" class="worker-refresh-time">Cargando...</span>
+                    <button id="manual-refresh-btn" class="btn-action btn-refresh" type="button">
+                        <i class="fas fa-sync-alt"></i>
+                        Actualizar
+                    </button>
+                </div>
+            </section>
 
-<div id="loading-overlay" class="loading-overlay" style="display: none;">
-    <div class="loading-content">
-        <i class="fas fa-spinner fa-spin"></i>
-        <p>Procesando...</p>
-    </div>
+            <div class="worker-portal-layout">
+                <aside class="worker-profile-card">
+                    <div class="worker-profile-header">
+                        <div class="worker-avatar" aria-hidden="true">
+                            <i class="fas fa-user-cog"></i>
+                        </div>
+                        <div class="worker-profile-info">
+                            <span id="worker-name" class="worker-name">Cargando...</span>
+                            <span id="worker-role" class="worker-role">worker</span>
+                        </div>
+                    </div>
+                    <div class="worker-profile-meta">
+                        <div>
+                            <small>Sesión</small>
+                            <div class="worker-status-chip">
+                                <span class="status-indicator"></span>
+                                Activa
+                            </div>
+                        </div>
+                        <button id="worker-logout-btn" class="btn-action btn-logout" type="button">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Cerrar sesión
+                        </button>
+                    </div>
+                    <p class="worker-profile-note">Los cambios de estado actualizan al negocio y a tus compañeros.</p>
+                </aside>
+
+                <section class="worker-orders-panel">
+                    <div id="worker-orders-container" class="worker-orders-container" aria-live="polite">
+                        <div class="empty-state">
+                            <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+                            <h3>Cargando pedidos...</h3>
+                            <p>Por favor espera un momento</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div id="loading-overlay" class="loading-overlay" style="display: none;" aria-hidden="true">
+            <div class="loading-content">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Procesando...</p>
+            </div>
+        </div>
+
+    </main>
 </div>
 
 {% endblock %}
 
 {% block footer %}
-<!-- Sin footer para trabajadores -->
 {% endblock %}
 
 {% block scripts %}
