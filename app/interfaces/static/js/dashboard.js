@@ -1,4 +1,5 @@
 // Dashboard JavaScript - Conectado a API REST real
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard loaded - Using real API');
     
@@ -32,7 +33,7 @@ document.getElementById('obtener-info-btn').addEventListener('click', async func
 
 document.getElementById('actualizar-nombre-btn').addEventListener('click', async function() {
     const nuevoNombre = document.getElementById('nuevo-nombre').value;
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    const token = getCsrfToken();
 
     const respuesta = await fetch('/api/auth/update_name', {
         method: 'POST',
@@ -44,8 +45,22 @@ document.getElementById('actualizar-nombre-btn').addEventListener('click', async
         body: JSON.stringify({ new_name: nuevoNombre })
     });
 
-    data = await respuesta.json();
+    const data = await respuesta.json();
     document.getElementById('user-name').textContent = data.user.full_name;
+});
+
+document.getElementById('obtener-trabajador-btn').addEventListener('click', async function() {
+
+    const idtrabajador = document.getElementById('trabajador-id').value;
+
+    const respuesta = await fetch(`/api/workers/${idtrabajador}`);
+
+    const data = await respuesta.json();
+
+    document.getElementById('trabajador-nombre').textContent = data.worker.full_name;
+    document.getElementById('trabajador-email').textContent = data.worker.email;
+    document.getElementById('trabajador-telefono').textContent = data.worker.phone;
+    
 });
 
 // ============================================================
@@ -165,11 +180,13 @@ async function fetchDashboardMetrics() {
 
 async function updateOrderStatus(orderId, newStatus) {
     try {
+        const token = getCsrfToken();
         const response = await fetch(`/api/orders/${orderId}`, {
             method: 'PATCH',
             credentials: 'include',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': token
             },
             body: JSON.stringify({ status: newStatus })
         });
@@ -189,11 +206,13 @@ async function updateOrderStatus(orderId, newStatus) {
 
 async function cancelOrder(orderId, reason) {
     try {
+        const token = getCsrfToken();
         const response = await fetch(`/api/orders/${orderId}/cancel`, {
             method: 'POST',
             credentials: 'include',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': token
             },
             body: JSON.stringify({ reason: reason })
         });

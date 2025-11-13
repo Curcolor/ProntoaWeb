@@ -11,6 +11,7 @@ from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_socketio import SocketIO
 from flask_marshmallow import Marshmallow
+from flask_wtf.csrf import CSRFProtect
 
 # Inicializar extensiones
 db = SQLAlchemy()
@@ -20,6 +21,7 @@ bcrypt = Bcrypt()
 cors = CORS()
 socketio = SocketIO()
 ma = Marshmallow()
+csrf = CSRFProtect()
 
 
 def init_extensions(app: Flask) -> None:
@@ -38,12 +40,16 @@ def init_extensions(app: Flask) -> None:
     # Password hashing
     bcrypt.init_app(app)
     
-    # CORS
+    # CSRF Protection
+    csrf.init_app(app)
+    
+    # CORS (permitir credenciales y encabezado CSRF)
     cors.init_app(app, resources={
         r"/api/*": {
-            "origins": "*",
-            "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"],
-            "allow_headers": ["Content-Type", "Authorization"]
+            "origins": app.config.get('CORS_ORIGINS', ['http://localhost:5000', 'http://127.0.0.1:5000']),
+            "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization", "X-CSRF-Token"],
+            "supports_credentials": True
         }
     })
     

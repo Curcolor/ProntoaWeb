@@ -194,22 +194,23 @@ def change_password():
 @login_required
 def update_name():
     """Actualiza el nombre completo del usuario actual."""
-    data = request.get_json()
-    new_name = data.get('new_name')
+    data = request.get_json(silent=True) or {}
+    new_name = data.get('new_name', '')
 
-    if new_name is not None:
-        
-        success, message = AuthService.update_user_name(current_user, new_name)
+    if not new_name or not new_name.strip():
+        return jsonify({
+            'success': False,
+            'message': 'Nuevo nombre no proporcionado'
+        }), 400
 
-        return jsonify({
-            'success': success,
-            'message': message,
-            'user': current_user.to_dict()
-        }), 200
-    else:
-        return jsonify({
-        'success': False,
-        'message': 'Nuevo nombre no proporcionado'
-    }), 400
+    success, message = AuthService.update_user_name(current_user, new_name)
+
+    status_code = 200 if success else 400
+
+    return jsonify({
+        'success': success,
+        'message': message,
+        'user': current_user.to_dict()
+    }), status_code
 
     

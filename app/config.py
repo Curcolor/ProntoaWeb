@@ -27,6 +27,15 @@ class Config:
     # Configuración de host y puerto
     HOST = os.environ.get('FLASK_HOST', '127.0.0.1')
     PORT = int(os.environ.get('FLASK_PORT', 5000))
+    
+    # CSRF Protection
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_TIME_LIMIT = None  # Token no expira
+    WTF_CSRF_SSL_STRICT = False  # Permitir en desarrollo sin HTTPS
+    
+    # CORS configuration
+    _cors_origins = os.environ.get('CORS_ORIGINS', 'http://localhost:5000,http://127.0.0.1:5000')
+    CORS_ORIGINS = [origin.strip() for origin in _cors_origins.split(',') if origin.strip()]
         
     # WhatsApp Business API
     WHATSAPP_API_KEY = os.environ.get('WHATSAPP_API_KEY')
@@ -54,7 +63,6 @@ class DevelopmentConfig(Config):
     """Configuración para entorno de desarrollo."""
     DEBUG = True
     SQLALCHEMY_ECHO = False  # No mostrar consultas SQL en desarrollo
-    WTF_CSRF_ENABLED = True  # Habilitar CSRF en desarrollo
 
 class ProductionConfig(Config):
     """Configuración para entorno de producción."""

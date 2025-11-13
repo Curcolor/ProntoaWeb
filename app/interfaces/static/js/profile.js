@@ -139,11 +139,13 @@ async function fetchKPISummary() {
 
 async function updateUserProfile(profileData) {
     try {
+        const token = getCsrfToken();
         const response = await fetch('/api/auth/profile', {
             method: 'PATCH',
             credentials: 'include',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': token
             },
             body: JSON.stringify(profileData)
         });

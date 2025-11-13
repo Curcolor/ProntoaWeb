@@ -137,11 +137,14 @@ async function startPreparing(orderId) {
     if (!confirm('¿Empezar a preparar este pedido?')) return;
     
     try {
+        const token = getCsrfToken();
         const response = await fetch(`/api/orders/${orderId}/status`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': token
             },
+            credentials: 'include',
             body: JSON.stringify({
                 status: 'preparing'
             })
@@ -164,11 +167,14 @@ async function markAsReady(orderId) {
     if (!confirm('¿Marcar este pedido como listo?')) return;
     
     try {
+        const token = getCsrfToken();
         const response = await fetch(`/api/orders/${orderId}/status`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': token
             },
+            credentials: 'include',
             body: JSON.stringify({
                 status: 'ready'
             })

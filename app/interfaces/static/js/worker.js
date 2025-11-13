@@ -173,9 +173,10 @@ function getStatusBadge(status) {
 async function acceptOrder(orderId, orderNumber) {
     if (!confirm(`Aceptar pedido #${orderNumber} para preparacion?`)) return;
     try {
+        const token = getCsrfToken();
         const response = await fetch(`/api/orders/${orderId}/accept-to-preparing`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
             credentials: 'include'
         });
         const data = await response.json();
@@ -190,9 +191,10 @@ async function acceptOrder(orderId, orderNumber) {
 async function markOrderReady(orderId, orderNumber) {
     if (!confirm(`Confirmar que el pedido #${orderNumber} esta listo?`)) return;
     try {
+        const token = getCsrfToken();
         const response = await fetch(`/api/orders/${orderId}/mark-ready`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
             credentials: 'include'
         });
         const data = await response.json();
@@ -208,9 +210,10 @@ async function markOrderReady(orderId, orderNumber) {
 async function acceptDelivery(orderId, orderNumber) {
     if (!confirm(`Aceptar pedido #${orderNumber} para entrega?`)) return;
     try {
+        const token = getCsrfToken();
         const response = await fetch(`/api/orders/${orderId}/accept-to-sent`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
             credentials: 'include'
         });
         const data = await response.json();
@@ -225,9 +228,10 @@ async function acceptDelivery(orderId, orderNumber) {
 async function markOrderPaid(orderId, orderNumber) {
     if (!confirm(`Confirmar que el pedido #${orderNumber} fue pagado?`)) return;
     try {
+        const token = getCsrfToken();
         const response = await fetch(`/api/orders/${orderId}/mark-paid`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
             credentials: 'include'
         });
         const data = await response.json();
@@ -242,9 +246,10 @@ async function markOrderPaid(orderId, orderNumber) {
 async function cancelOrder(orderId, orderNumber) {
     if (!confirm(`Cancelar pedido #${orderNumber}? Volvera al estado anterior.`)) return;
     try {
+        const token = getCsrfToken();
         const response = await fetch(`/api/orders/${orderId}/cancel-to-previous`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
             credentials: 'include'
         });
         const data = await response.json();

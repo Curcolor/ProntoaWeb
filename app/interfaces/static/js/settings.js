@@ -66,11 +66,13 @@ async function fetchCurrentUser() {
 
 async function updateBusinessSettings(settingsData) {
     try {
+        const token = getCsrfToken();
         const response = await fetch('/api/business/settings', {
             method: 'PATCH',
             credentials: 'include',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': token
             },
             body: JSON.stringify(settingsData)
         });
@@ -295,11 +297,13 @@ async function handleChangePassword(e) {
     }
     
     try {
+        const token = getCsrfToken();
         const response = await fetch('/api/auth/change-password', {
             method: 'POST',
             credentials: 'include',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': token
             },
             body: JSON.stringify({
                 old_password: oldPassword,

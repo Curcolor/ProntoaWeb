@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template
 from app.config import config
-from app.extensions import init_extensions, db
+from app.extensions import init_extensions, db, csrf
 
 
 def create_app(config_name):
@@ -43,6 +43,11 @@ def create_app(config_name):
             # Blueprint simple
             app.register_blueprint(blueprint_info)
     
+    # Excluir blueprints de API del CSRF (usarán tokens propios)
+    from app.routes.api import api_blueprints as api_bp_list
+    for api_bp in api_bp_list:
+        csrf.exempt(api_bp)
+    
     # Registrar manejadores de errores personalizados
     register_error_handlers(app)
     
@@ -53,6 +58,13 @@ def create_app(config_name):
         # No es necesario sobrescribir get_flashed_messages, 
         # Flask ya lo proporciona por defecto
         return {}
+    
+    # Registrar procesador de contexto para CSRF token
+    @app.context_processor
+    def inject_csrf_token():
+        """Inyecta la función csrf_token en el contexto de Jinja."""
+        from flask_wtf.csrf import generate_csrf
+        return {'csrf_token': generate_csrf}
     
     # Mostrar rutas registradas en la consola (útil para debug)
     # Solo mostrar si no es un restart del servidor
