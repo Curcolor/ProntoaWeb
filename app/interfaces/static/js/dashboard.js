@@ -18,6 +18,34 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(loadDashboardData, 30000);
 });
 
+// Prueba de obtener nombre de usuario --------------------------------------------------------------------------------------------------------------------------------------
+document.getElementById('obtener-info-btn').addEventListener('click', async function() {
+    const respuesta = await fetch('/api/auth/me');
+    const data = await respuesta.json();
+
+
+    document.getElementById('resultado').textContent = data.success;
+    document.getElementById('user-name').textContent = data.user.full_name;
+    document.getElementById('user-email').textContent = data.user.email;
+    document.getElementById('user-phone').textContent = data.user.phone;
+});
+
+document.getElementById('actualizar-nombre-btn').addEventListener('click', async function() {
+    const nuevoNombre = document.getElementById('nuevo-nombre').value;
+
+    const respuesta = await fetch('/api/auth/update_name', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+         },
+        body: JSON.stringify({ new_name: nuevoNombre })
+    });
+
+    data = await respuesta.json();
+    document.getElementById('user-name').textContent = data.user.full_name;
+});
+
 // ============================================================
 // CARGAR DATOS DEL DASHBOARD
 // ============================================================

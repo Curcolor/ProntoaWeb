@@ -190,3 +190,15 @@ class AuthService:
             User o None
         """
         return User.query.filter_by(email=email).first()
+    
+    @staticmethod
+    def update_user_name(user, new_name):
+        """
+        Actualiza el nombre completo del usuario.
+        
+        Args:
+            user: Usuario
+            new_name: Nuevo nombre completo
+        """
+        user.full_name = new_name
+        db.session.commit()

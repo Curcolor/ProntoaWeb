@@ -189,3 +189,27 @@ def change_password():
             'success': False,
             'message': f'Error en el servidor: {str(e)}'
         }), 500
+
+@auth_api_bp.route('/update_name', methods=['POST'])
+@login_required
+def update_name():
+    """Actualiza el nombre completo del usuario actual."""
+    data = request.get_json()
+    new_name = data.get('new_name')
+
+    if new_name is not None:
+        
+        success, message = AuthService.update_user_name(current_user, new_name)
+
+        return jsonify({
+            'success': success,
+            'message': message,
+            'user': current_user.to_dict()
+        }), 200
+    else:
+        return jsonify({
+        'success': False,
+        'message': 'Nuevo nombre no proporcionado'
+    }), 400
+
+    

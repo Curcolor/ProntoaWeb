@@ -8,6 +8,7 @@ from app.routes.api.kpis_routes import kpis_api_bp
 from app.routes.api.whatsapp_routes import whatsapp_api_bp
 from app.routes.api.worker_routes import worker_bp
 
+
 # Lista de todos los blueprints de API
 api_blueprints = [
     auth_api_bp,

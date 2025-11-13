@@ -24,7 +24,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = User
         load_instance = True
-        exclude = ('password_hash',)  # ❌ Nunca exponer password
+        exclude = ('password_hash',)  # Nunca exponer password
         
     password = fields.Str(load_only=True, required=True, validate=validate.Length(min=8))
 
