@@ -37,6 +37,10 @@ Thumbs.db
 logs/
 *.log
 
+# Uploads (ignorar archivos subidos pero mantener estructura)
+uploads/*
+!uploads/.gitkeep
+
 # Distribution / packaging
 .Python
 build/

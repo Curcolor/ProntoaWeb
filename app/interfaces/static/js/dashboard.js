@@ -32,12 +32,14 @@ document.getElementById('obtener-info-btn').addEventListener('click', async func
 
 document.getElementById('actualizar-nombre-btn').addEventListener('click', async function() {
     const nuevoNombre = document.getElementById('nuevo-nombre').value;
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
     const respuesta = await fetch('/api/auth/update_name', {
         method: 'POST',
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRF-Token': token
          },
         body: JSON.stringify({ new_name: nuevoNombre })
     });

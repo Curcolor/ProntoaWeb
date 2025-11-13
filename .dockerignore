@@ -15,6 +15,9 @@ instance/
 *.log
 logs/
 
+# Uploads (se maneja con volumen Docker)
+uploads/
+
 # Archivos temporales
 *.tmp
 *.temp

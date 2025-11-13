@@ -40,6 +40,10 @@ class Config:
     # Pagination
     ITEMS_PER_PAGE = 25
     
+    # Upload folder
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max file size
+    
     @staticmethod
     def init_app(app):
         """Inicialización adicional de la aplicación"""
@@ -49,8 +53,8 @@ class Config:
 class DevelopmentConfig(Config):
     """Configuración para entorno de desarrollo."""
     DEBUG = True
-    SQLALCHEMY_ECHO = True
-    WTF_CSRF_ENABLED = False  # Deshabilitar CSRF en desarrollo
+    SQLALCHEMY_ECHO = False  # No mostrar consultas SQL en desarrollo
+    WTF_CSRF_ENABLED = True  # Habilitar CSRF en desarrollo
 
 class ProductionConfig(Config):
     """Configuración para entorno de producción."""
