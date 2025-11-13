@@ -91,8 +91,8 @@ function createOrderCard(order, status) {
     phoneElement.dataset.phone = order.customer_phone;
     
     // Total
-    card.querySelector('.total-amount').textContent = 
-        order.total_amount.toFixed(0);
+    const totalAmount = Number(order.total_amount || 0);
+    card.querySelector('.total-amount').textContent = totalAmount.toFixed(0);
     
     // Notas
     const notesElement = card.querySelector('.delivery-notes');

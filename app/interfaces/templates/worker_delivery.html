@@ -21,10 +21,6 @@
         </div>
 
         <div class="sidebar-menu">
-            <a href="{{ url_for('viewpages.worker_kitchen') }}" class="menu-item {% if request.endpoint == 'viewpages.worker_kitchen' %}active{% endif %}">
-                <i class="fas fa-fire"></i>
-                <span>Pedidos cocina</span>
-            </a>
             <a href="{{ url_for('viewpages.worker_delivery') }}" class="menu-item {% if request.endpoint == 'viewpages.worker_delivery' %}active{% endif %}">
                 <i class="fas fa-motorcycle"></i>
                 <span>Pedidos entrega</span>

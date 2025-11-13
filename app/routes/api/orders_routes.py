@@ -798,6 +798,7 @@ def get_delivery_orders():
         orders_data = []
         for order in all_orders:
             order_dict = order_schema.dump(order)
+            order_dict['total_amount'] = float(order.total_amount or 0)
             # Agregar información del cliente
             if order.customer:
                 customer_name = getattr(order.customer, 'name', None) or getattr(order.customer, 'full_name', None) or 'Cliente'
@@ -805,6 +806,7 @@ def get_delivery_orders():
                 order_dict['customer_phone'] = order.customer.phone
             # Agregar dirección de entrega
             order_dict['delivery_address'] = order.delivery_address or 'No especificada'
+            order_dict['delivery_notes'] = order.notes or ''
             # Agregar items (opcional para repartidor, pero útil)
             order_dict['items'] = [
                 {
