@@ -6,6 +6,7 @@ Maneja las rutas que renderizan templates HTML.
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user, logout_user
 from app.services.auth_service import AuthService
+from app.services.worker_service import WorkerService
 
 # Crear blueprint para páginas web
 viewpages_bp = Blueprint('viewpages', __name__)
@@ -233,4 +234,5 @@ def worker_profile():
         flash('Acceso no autorizado', 'error')
         return redirect(url_for('viewpages.dashboard'))
     
-    return render_template('worker_profile.html')
+    worker_stats = WorkerService.get_worker_statistics(current_user.id)
+    return render_template('worker_profile.html', worker=current_user, worker_stats=worker_stats)

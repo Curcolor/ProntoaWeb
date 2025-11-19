@@ -91,8 +91,8 @@ function createOrderCard(order, status) {
     phoneElement.dataset.phone = order.customer_phone;
     
     // Total
-    card.querySelector('.total-amount').textContent = 
-        order.total_amount.toFixed(0);
+    const totalAmount = Number(order.total_amount || 0);
+    card.querySelector('.total-amount').textContent = totalAmount.toFixed(0);
     
     // Notas
     const notesElement = card.querySelector('.delivery-notes');
@@ -144,11 +144,14 @@ async function pickupOrder(orderId) {
     if (!confirm('¿Recoger este pedido para entrega?')) return;
     
     try {
+        const token = getCsrfToken();
         const response = await fetch(`/api/orders/${orderId}/status`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': token
             },
+            credentials: 'include',
             body: JSON.stringify({
                 status: 'sent'
             })
@@ -171,11 +174,14 @@ async function markAsDelivered(orderId) {
     if (!confirm('¿Confirmar que el pedido fue entregado?')) return;
     
     try {
+        const token = getCsrfToken();
         const response = await fetch(`/api/orders/${orderId}/status`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': token
             },
+            credentials: 'include',
             body: JSON.stringify({
                 status: 'paid'
             })

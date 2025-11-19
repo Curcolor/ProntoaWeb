@@ -51,5 +51,9 @@ class Worker(UserMixin, db.Model):
             'last_login': self.last_login.isoformat() if self.last_login else None
         }
     
+    def get_id(self):
+        """Identificador único para Flask-Login (prefijado)."""
+        return f'worker-{self.id}'
+    
     def __repr__(self):
         return f'<Worker {self.email}>'

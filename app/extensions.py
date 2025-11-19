@@ -11,7 +11,7 @@ from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_socketio import SocketIO
 from flask_marshmallow import Marshmallow
-from flask_wtf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect
 
 # Inicializar extensiones
 db = SQLAlchemy()
@@ -40,12 +40,16 @@ def init_extensions(app: Flask) -> None:
     # Password hashing
     bcrypt.init_app(app)
     
-    # CORS
+    # CSRF Protection
+    csrf.init_app(app)
+    
+    # CORS (permitir credenciales y encabezado CSRF)
     cors.init_app(app, resources={
         r"/api/*": {
-            "origins": "*",
-            "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"],
-            "allow_headers": ["Content-Type", "Authorization"]
+            "origins": app.config.get('CORS_ORIGINS', ['http://localhost:5000', 'http://127.0.0.1:5000']),
+            "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization", "X-CSRF-Token"],
+            "supports_credentials": True
         }
     })
     
@@ -64,11 +68,32 @@ def init_extensions(app: Flask) -> None:
     csrf.init_app(app)
     
     # Configurar user loader para Flask-Login
-    from app.data.models import User
+    from app.data.models import User, Worker
     
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        """Carga usuarios y trabajadores según el identificador almacenado en sesión."""
+        if not user_id:
+            return None
+        try:
+            if isinstance(user_id, str):
+                if user_id.startswith('worker-'):
+                    worker_id = int(user_id.split('-', 1)[1])
+                    return Worker.query.get(worker_id)
+                if user_id.startswith('user-'):
+                    user_id_int = int(user_id.split('-', 1)[1])
+                    return User.query.get(user_id_int)
+                # Fall back to numeric parsing for sesiones antiguas
+                numeric_id = int(user_id)
+            else:
+                numeric_id = int(user_id)
+        except (ValueError, TypeError):
+            return None
+        # Intentar primero con usuarios, luego con trabajadores (para compatibilidad)
+        user = User.query.get(numeric_id)
+        if user:
+            return user
+        return Worker.query.get(numeric_id)
     
     # Configurar variables básicas para templates
     init_template_context(app)

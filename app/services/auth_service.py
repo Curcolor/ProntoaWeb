@@ -200,5 +200,15 @@ class AuthService:
             user: Usuario
             new_name: Nuevo nombre completo
         """
-        user.full_name = new_name
-        db.session.commit()
+        if not new_name or not new_name.strip():
+            return False, 'El nombre no puede estar vacío'
+
+        cleaned_name = new_name.strip()
+
+        try:
+            user.full_name = cleaned_name
+            db.session.commit()
+            return True, 'Nombre actualizado correctamente'
+        except Exception as e:
+            db.session.rollback()
+            return False, f'Error al actualizar nombre: {str(e)}'

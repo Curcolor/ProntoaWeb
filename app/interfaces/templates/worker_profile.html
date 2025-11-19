@@ -3,14 +3,35 @@
 {% block title %}Perfil - Trabajador{% endblock %}
 
 {% block stylesheets %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/worker_profile.css') }}">
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/worker_profile.css') }}">
 {% endblock %}
 
+{% set worker_obj = worker or current_user %}
+{% set stats = worker_stats or {} %}
+{% set worker_name = worker_obj.full_name or worker_obj.name or 'Trabajador' %}
+{% set worker_initial = worker_name[0] if worker_name else 'T' %}
+{% set worker_type = worker_obj.worker_type or 'planta' %}
+{% set is_kitchen_worker = worker_type == 'planta' %}
+{% set status_label = 'Activo' if worker_obj.is_active else 'Inactivo' %}
+{% set status_indicator_class = 'status-indicator online' if worker_obj.is_active else 'status-indicator' %}
+{% set profile_status_class = 'profile-status status-active' if worker_obj.is_active else 'profile-status' %}
+{% set business_name = worker_obj.business.name if worker_obj.business else 'Sin negocio asignado' %}
+{% set joined_date = worker_obj.created_at.strftime('%d/%m/%Y') if worker_obj.created_at else '--' %}
+{% set phone = worker_obj.phone or '--' %}
+{% set email = worker_obj.email or '--' %}
+{% set total_orders = stats.get('total_orders_assigned', 0) %}
+{% set completed_orders = stats.get('completed_orders', 0) %}
+{% set completion_rate = stats.get('completion_rate', 0) %}
+{% set average_time_value = stats.get('average_preparation_time') or stats.get('average_delivery_time') %}
+{% set average_time = average_time_value if average_time_value is not none else '--' %}
+{% set satisfaction = completion_rate %}
+{% set last_login_text = worker_obj.last_login.strftime('%d/%m/%Y %H:%M') if worker_obj.last_login else 'Sin registro' %}
+{% set worker_status = worker_obj.status if worker_obj.status else status_label %}
+
 {% block navbar %}
-<!-- Sidebar y navbar del dashboard -->
 <div class="dashboard-layout">
-    <!-- Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-header">
             <div class="brand">
@@ -20,9 +41,9 @@
                 <span class="brand-text">Prontoa!</span>
             </div>
         </div>
-        
+
         <div class="sidebar-menu">
-            <a href="{{ url_for('viewpages.worker_orders') }}" class="menu-item">
+            <a href="{{ url_for('viewpages.worker_orders') }}" class="menu-item {% if request.endpoint == 'viewpages.worker_orders' %}active{% endif %}">
                 <i class="fas fa-list-check"></i>
                 <span>Mis Pedidos</span>
             </a>
@@ -37,63 +58,57 @@
         </div>
     </nav>
 
-    <!-- Main content -->
     <main class="main-content">
-        <!-- Top bar -->
         <div class="top-bar">
             <h1 class="page-title">Mi Perfil</h1>
             <div class="top-bar-actions">
-                <span class="status-indicator online">
+                <span class="{{ status_indicator_class }}">
                     <i class="fas fa-circle"></i>
-                    Online
+                    {{ status_label }}
                 </span>
-                <span class="last-update">Última actualización: hace 2 min</span>
-                <a href="{{ url_for('viewpages.worker_profile') }}" class="user-avatar" title="Mi perfil">
-                    <span>{{ worker.name[0] if worker.name else 'T' }}</span>
+                <span class="last-update">Última sesión: {{ last_login_text }}</span>
+                <a href="{{ url_for('viewpages.worker_profile') }}" class="user-avatar" title="{{ worker_name }}">
+                    <span>{{ worker_initial }}</span>
                 </a>
             </div>
         </div>
 {% endblock %}
 
 {% block content %}
-        <!-- Contenedor principal de perfil -->
         <div class="profile-container">
-            
-            <!-- Tarjeta de información personal -->
             <div class="profile-card profile-info">
                 <div class="profile-header">
                     <div class="profile-avatar">
-                        {% if worker.worker_type == 'planta' %}
+                        {% if is_kitchen_worker %}
                             <i class="fas fa-utensils"></i>
                         {% else %}
                             <i class="fas fa-motorcycle"></i>
                         {% endif %}
                     </div>
                     <div class="profile-details">
-                        <h2 class="profile-name">{{ worker.name }}</h2>
-                        <p class="profile-email">{{ worker.email }}</p>
-                        <div class="worker-type-badge">
-                            {% if worker.worker_type == 'planta' %}
-                                <span class="badge badge-success">
-                                    <i class="fas fa-fire"></i> Trabajador en Planta
-                                </span>
+                        <h2 class="profile-name">{{ worker_name }}</h2>
+                        <p class="profile-email">{{ email }}</p>
+                        <span class="{{ profile_status_class }}">
+                            <i class="fas fa-circle"></i>
+                            {{ status_label }}
+                        </span>
+                    </div>
+                    <div class="worker-type-badge">
+                        <span class="badge {% if is_kitchen_worker %}badge-success{% else %}badge-info{% endif %}">
+                            {% if is_kitchen_worker %}
+                                <i class="fas fa-fire"></i> Trabajador en Planta
                             {% else %}
-                                <span class="badge badge-info">
-                                    <i class="fas fa-truck"></i> Repartidor
-                                </span>
+                                <i class="fas fa-truck"></i> Repartidor
                             {% endif %}
-                        </div>
-                        <span class="profile-status status-active">
-                            <i class="fas fa-circle"></i> {{ worker.status }}
                         </span>
                     </div>
                 </div>
-                
+
                 <div class="profile-info-grid">
                     <div class="info-item">
                         <label>Tipo de Trabajador</label>
                         <p>
-                            {% if worker.worker_type == 'planta' %}
+                            {% if is_kitchen_worker %}
                                 <span class="badge badge-success">
                                     <i class="fas fa-utensils"></i> En Planta (Preparación)
                                 </span>
@@ -106,19 +121,23 @@
                     </div>
                     <div class="info-item">
                         <label>Empresa</label>
-                        <p>{{ worker.empresa }}</p>
+                        <p>{{ business_name }}</p>
                     </div>
                     <div class="info-item">
                         <label>Teléfono</label>
-                        <p>{{ worker.phone }}</p>
+                        <p>{{ phone }}</p>
                     </div>
                     <div class="info-item">
                         <label>Se unió</label>
-                        <p>{{ worker.joined }}</p>
+                        <p>{{ joined_date }}</p>
                     </div>
                     <div class="info-item">
                         <label>Email</label>
-                        <p>{{ worker.email }}</p>
+                        <p>{{ email }}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Estado</label>
+                        <p>{{ worker_status }}</p>
                     </div>
                     <div class="info-item">
                         <label>Rol</label>
@@ -127,20 +146,19 @@
                 </div>
             </div>
 
-            <!-- Tarjetas de estadísticas -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon primary">
-                        {% if worker.worker_type == 'planta' %}
+                        {% if is_kitchen_worker %}
                             <i class="fas fa-fire"></i>
                         {% else %}
                             <i class="fas fa-motorcycle"></i>
                         {% endif %}
                     </div>
                     <div class="stat-content">
-                        <h3 class="stat-value">{{ worker.total_orders }}</h3>
+                        <h3 class="stat-value">{{ total_orders }}</h3>
                         <p class="stat-label">
-                            {% if worker.worker_type == 'planta' %}
+                            {% if is_kitchen_worker %}
                                 Pedidos Preparados
                             {% else %}
                                 Pedidos Entregados
@@ -154,7 +172,7 @@
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="stat-content">
-                        <h3 class="stat-value">{{ worker.completed_orders }}</h3>
+                        <h3 class="stat-value">{{ completed_orders }}</h3>
                         <p class="stat-label">Completados</p>
                     </div>
                 </div>
@@ -164,9 +182,9 @@
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="stat-content">
-                        <h3 class="stat-value">{{ worker.average_time }}</h3>
+                        <h3 class="stat-value">{{ average_time }}</h3>
                         <p class="stat-label">
-                            {% if worker.worker_type == 'planta' %}
+                            {% if is_kitchen_worker %}
                                 Tiempo de Preparación
                             {% else %}
                                 Tiempo de Entrega
@@ -180,13 +198,12 @@
                         <i class="fas fa-star"></i>
                     </div>
                     <div class="stat-content">
-                        <h3 class="stat-value">{{ worker.satisfaction }}</h3>
-                        <p class="stat-label">Satisfacción</p>
+                        <h3 class="stat-value">{{ satisfaction | round(1) }}%</h3>
+                        <p class="stat-label">Tasa de éxito</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Sección de acciones -->
             <div class="profile-actions">
                 <h3>Acciones</h3>
                 <div class="actions-grid">
@@ -208,8 +225,8 @@
                     </button>
                 </div>
             </div>
-
         </div>
+
     </main>
 </div>
 {% endblock %}

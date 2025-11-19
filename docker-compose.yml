@@ -46,6 +46,8 @@ services:
       # Montar código fuente para desarrollo en vivo
       - .:/app
       - /app/__pycache__
+      # Volumen persistente para uploads (no se pierde al rebuildar)
+      - uploads_data:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -59,4 +61,6 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
+  uploads_data:
     driver: local

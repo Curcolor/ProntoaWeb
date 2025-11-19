@@ -2,55 +2,120 @@
 
 {% block title %}Cocina - Pedidos{% endblock %}
 
-{% block content %}
-<div class="worker-container">
-    <header class="worker-header">
-        <div class="header-content">
-            <h1>🍳 Cocina - Pedidos</h1>
-            <div class="worker-info">
-                <span class="worker-name">{{ current_user.full_name }}</span>
-                <span class="worker-badge badge-kitchen">Cocina</span>
+{% block stylesheets %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/worker_dashboard.css') }}">
+{% endblock %}
+
+{% block navbar %}
+<div class="dashboard-layout">
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <span class="brand-text">Prontoa!</span>
             </div>
         </div>
-    </header>
 
-    <div class="orders-section">
-        <!-- Pedidos Recibidos (pendientes de preparar) -->
-        <div class="orders-column">
-            <h2 class="column-title">
-                <span class="status-icon">📥</span>
-                Recibidos
-            </h2>
+        <div class="sidebar-menu">
+            <a href="{{ url_for('viewpages.worker_kitchen') }}" class="menu-item {% if request.endpoint == 'viewpages.worker_kitchen' %}active{% endif %}">
+                <i class="fas fa-fire"></i>
+                <span>Pedidos cocina</span>
+            </a>
+            <a href="{{ url_for('viewpages.worker_profile') }}" class="menu-item {% if request.endpoint == 'viewpages.worker_profile' %}active{% endif %}">
+                <i class="fas fa-user"></i>
+                <span>Mi perfil</span>
+            </a>
+            <a href="{{ url_for('viewpages.logout') }}" class="menu-item text-danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="top-bar worker-top-bar">
+            <h1 class="page-title"><i class="fas fa-utensils"></i> Cocina</h1>
+            <div class="top-bar-actions">
+                <span class="status-indicator online">
+                    <i class="fas fa-circle"></i>
+                    En línea
+                </span>
+                <span class="last-update">Actualización automática cada 30 s</span>
+                <span class="user-avatar" title="{{ current_user.full_name if current_user.is_authenticated else 'Trabajador' }}">
+                    {{ (current_user.full_name[0] if current_user.is_authenticated and current_user.full_name) or 'C' }}
+                </span>
+            </div>
+        </div>
+{% endblock %}
+
+{% block content %}
+
+        <section class="worker-dashboard py-4">
+            <div class="dashboard-header">
+                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                    <div>
+                        <h2 class="mb-1">Gestión de pedidos en cocina</h2>
+                        <p class="dashboard-meta mb-0">Revisa pedidos recibidos y avanza su estado conforme los preparas.</p>
+                    </div>
+                    <div class="text-md-end">
+                        <div class="fw-semibold">{{ current_user.full_name }}</div>
+                        <span class="worker-role-badge">
+                            <i class="fas fa-utensils"></i>
+                            Cocina
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="orders-grid" aria-live="polite">
+        <section class="orders-column" aria-labelledby="column-received">
+            <div class="orders-column-header">
+                <h2 id="column-received" class="orders-column-title">
+                    <span role="img" aria-hidden="true">📥</span>
+                    Recibidos
+                </h2>
+                <span class="orders-column-pill text-uppercase small">Entrada</span>
+            </div>
             <div id="received-orders" class="orders-list">
                 <p class="empty-message">No hay pedidos recibidos</p>
             </div>
-        </div>
+        </section>
 
-        <!-- Pedidos en Preparación -->
-        <div class="orders-column">
-            <h2 class="column-title">
-                <span class="status-icon">👨‍🍳</span>
-                En Preparación
-            </h2>
+        <section class="orders-column" aria-labelledby="column-preparing">
+            <div class="orders-column-header">
+                <h2 id="column-preparing" class="orders-column-title">
+                    <span role="img" aria-hidden="true">👨‍🍳</span>
+                    En preparación
+                </h2>
+                <span class="orders-column-pill text-uppercase small">En curso</span>
+            </div>
             <div id="preparing-orders" class="orders-list">
                 <p class="empty-message">No hay pedidos en preparación</p>
             </div>
-        </div>
+        </section>
 
-        <!-- Pedidos Listos -->
-        <div class="orders-column">
-            <h2 class="column-title">
-                <span class="status-icon">✅</span>
-                Listos
-            </h2>
+        <section class="orders-column" aria-labelledby="column-ready">
+            <div class="orders-column-header">
+                <h2 id="column-ready" class="orders-column-title">
+                    <span role="img" aria-hidden="true">✅</span>
+                    Listos
+                </h2>
+                <span class="orders-column-pill text-uppercase small">Entrega</span>
+            </div>
             <div id="ready-orders" class="orders-list">
                 <p class="empty-message">No hay pedidos listos</p>
             </div>
-        </div>
-    </div>
+        </section>
+            </div>
+        </section>
+
+    </main>
 </div>
 
-<!-- Template para tarjeta de pedido -->
 <template id="order-card-template">
     <div class="order-card" data-order-id="">
         <div class="order-header">
@@ -58,193 +123,20 @@
             <span class="order-time"></span>
         </div>
         <div class="order-customer">
-            <strong>Cliente:</strong> <span class="customer-name"></span>
+            <strong>Cliente:</strong>
+            <span class="customer-name"></span>
         </div>
-        <div class="order-items">
-            <!-- Los items se agregarán dinámicamente -->
-        </div>
+        <div class="order-items"></div>
         <div class="order-notes">
             <small class="delivery-notes"></small>
         </div>
-        <div class="order-actions">
-            <!-- Los botones se agregarán dinámicamente según el estado -->
-        </div>
+        <div class="order-actions"></div>
     </div>
 </template>
+{% endblock %}
 
-<style>
-.worker-container {
-    padding: 20px;
-    max-width: 1400px;
-    margin: 0 auto;
-}
+{% block footer %}{% endblock %}
 
-.worker-header {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 30px;
-}
-
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.worker-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.worker-badge {
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 0.9em;
-    font-weight: bold;
-}
-
-.badge-kitchen {
-    background: #4CAF50;
-    color: white;
-}
-
-.orders-section {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-}
-
-.orders-column {
-    background: #f5f5f5;
-    padding: 15px;
-    border-radius: 10px;
-    min-height: 500px;
-}
-
-.column-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-    font-size: 1.2em;
-}
-
-.status-icon {
-    font-size: 1.5em;
-}
-
-.orders-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.order-card {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-}
-
-.order-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.order-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
-}
-
-.order-number {
-    font-weight: bold;
-    font-size: 1.1em;
-    color: #2196F3;
-}
-
-.order-time {
-    color: #666;
-    font-size: 0.9em;
-}
-
-.order-customer {
-    margin-bottom: 10px;
-}
-
-.order-items {
-    margin: 10px 0;
-    padding: 10px;
-    background: #f9f9f9;
-    border-radius: 5px;
-}
-
-.order-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 5px 0;
-}
-
-.order-notes {
-    margin: 10px 0;
-    padding: 10px;
-    background: #fff3cd;
-    border-radius: 5px;
-    font-style: italic;
-}
-
-.order-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.btn-action {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.btn-start {
-    background: #4CAF50;
-    color: white;
-}
-
-.btn-start:hover {
-    background: #45a049;
-}
-
-.btn-ready {
-    background: #2196F3;
-    color: white;
-}
-
-.btn-ready:hover {
-    background: #0b7dda;
-}
-
-.empty-message {
-    text-align: center;
-    color: #999;
-    padding: 40px 20px;
-}
-
-@media (max-width: 1024px) {
-    .orders-section {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
-
-<script src="{{ url_for('static', filename='js/worker_kitchen.js') }}"></script>
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/worker_kitchen.js') }}"></script>
 {% endblock %}

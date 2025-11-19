@@ -1,0 +1,22 @@
+# Asegurar que los scripts shell tengan LF en todos los sistemas
+*.sh text eol=lf
+docker-entrypoint.sh text eol=lf
+
+# Configuración general
+* text=auto
+*.py text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+
+# Archivos binarios
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary

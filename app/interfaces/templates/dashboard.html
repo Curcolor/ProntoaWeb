@@ -3,13 +3,13 @@
 {% block title %}Dashboard - ProntoaWeb{% endblock %}
 
 {% block stylesheets %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/worker_dashboard.css') }}">
 {% endblock %}
 
 {% block navbar %}
-<!-- Sidebar y navbar del dashboard -->
 <div class="dashboard-layout">
-    <!-- Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-header">
             <div class="brand">
@@ -20,23 +20,22 @@
             </div>
         </div>
 
-
         <div class="sidebar-menu">
-            <a href="{{ url_for('viewpages.dashboard') }}" class="menu-item active">
-                <i class="fas fa-chart-line"></i>
+            <a href="{{ url_for('viewpages.dashboard') }}" class="menu-item {% if request.endpoint == 'viewpages.dashboard' %}active{% endif %}">
+                <i class="fas fa-th-large"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="{{ url_for('viewpages.kpis') }}" class="menu-item">
-                <i class="fas fa-chart-bar"></i>
+            <a href="{{ url_for('viewpages.kpis') }}" class="menu-item {% if request.endpoint == 'viewpages.kpis' %}active{% endif %}">
+                <i class="fas fa-chart-line"></i>
                 <span>KPIs</span>
             </a>
-            <a href="{{ url_for('viewpages.profile') }}" class="menu-item">
-                <i class="fas fa-user"></i>
+            <a href="{{ url_for('viewpages.profile') }}" class="menu-item {% if request.endpoint == 'viewpages.profile' %}active{% endif %}">
+                <i class="fas fa-user-circle"></i>
                 <span>Perfil</span>
             </a>
-            <a href="{{ url_for('viewpages.settings') }}" class="menu-item">
+            <a href="{{ url_for('viewpages.settings') }}" class="menu-item {% if request.endpoint == 'viewpages.settings' %}active{% endif %}">
                 <i class="fas fa-cog"></i>
-                <span>Settings</span>
+                <span>Configuración</span>
             </a>
             <a href="{{ url_for('viewpages.logout') }}" class="menu-item text-danger">
                 <i class="fas fa-sign-out-alt"></i>
@@ -45,142 +44,176 @@
         </div>
     </nav>
 
-    <!-- Main content -->
     <main class="main-content">
-        <!-- Top bar -->
         <div class="top-bar">
-            <h1 class="page-title">Panel de Control</h1>
+            <h1 class="page-title">Dashboard del negocio</h1>
             <div class="top-bar-actions">
                 <span class="status-indicator online">
                     <i class="fas fa-circle"></i>
-                    Online
+                    En línea
                 </span>
-                <span class="last-update">Última actualización: hace 2 min</span>
-                <a href="{{ url_for('viewpages.profile') }}" class="user-avatar" title="Ver perfil">
-                    <span>A</span>
-                </a>
+                <span class="last-update">Última actualización: --</span>
+                <button id="refresh-btn" class="btn btn-outline-success btn-sm" type="button">
+                    <i class="fas fa-sync-alt"></i>
+                    Actualizar
+                </button>
+                <span class="user-avatar" title="{{ current_user.full_name if current_user.is_authenticated else 'Usuario' }}">
+                    {{ (current_user.full_name[0] if current_user.is_authenticated and current_user.full_name) or 'U' }}
+                </span>
             </div>
         </div>
-        {% endblock %}
+{% endblock %}
 
-        {% block content %}
-        <!-- Métricas principales -->
-
-        <!--pruebas------------------------------------------------------------------------------------------------------------------------------------------------------->
-
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title"> Información del Usuario</h5>
-                <button id="obtener-info-btn" class="btn btn-primary">Obtener Información</button>
-                <div id="info-usuario" class="mt-3">
-                    <p>Resultado:<span id="resultado"></span></p>
-                    <p><strong>Nombre:</strong> <span id="user-name"></span></p>
-                    <p><strong>Correo Electrónico:</strong> <span id="user-email"></span></p>
-                    <p><strong>Telefono:</strong> <span id="user-phone"></span></p>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title"> Actualizar nombre</h5>
-                <input type="text" id="nuevo-nombre" class="form-control" placeholder="Pon el nombre nuevo aquí">
-                <button id="actualizar-nombre-btn" class="btn btn-primary mt-2">Actualizar Nombre</button>
-            </div>
-        </div>
-
-        <!--fin pruebas-->
-
-        <div class="metrics-grid">
-            <div class="metric-card primary">
-                <div class="metric-value" id="orders-today">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </div>
-                <div class="metric-label">Pedidos Hoy</div>
-            </div>
-            <div class="metric-card success">
-                <div class="metric-value" id="avg-response-time">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </div>
-                <div class="metric-label">Tiempo Promedio</div>
-            </div>
-            <div class="metric-card purple">
-                <div class="metric-value" id="sales-today">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </div>
-                <div class="metric-label">Ventas del Día</div>
-            </div>
-            <div class="metric-card warning">
-                <div class="metric-value" id="satisfaction">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </div>
-                <div class="metric-label">Satisfacción</div>
-            </div>
-        </div>
-
-        <!-- Tablero Kanban -->
-        <div class="kanban-board">
-            <!-- Columna Recibido -->
-            <div class="kanban-column" data-status="received">
-                <div class="column-header received">
-                    <h3>Recibidos (0)</h3>
-                </div>
-                <div class="kanban-cards column-content">
-                    <!-- Los pedidos se cargan dinámicamente aquí -->
+{% block content %}
+        <section class="worker-dashboard py-4">
+            <div class="dashboard-header">
+                <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                    <div>
+                        <h2 class="mb-1">Tablero de pedidos</h2>
+                        <p class="dashboard-meta mb-0">Arrastra los pedidos entre columnas para actualizar su estado y mantener al equipo sincronizado.</p>
+                    </div>
+                    <div class="text-lg-end">
+                        <span class="worker-role-badge">
+                            <i class="fas fa-store"></i>
+                            Negocio
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Columna En Preparación -->
-            <div class="kanban-column" data-status="preparing">
-                <div class="column-header preparing">
-                    <h3>En Preparación (0)</h3>
+            <div class="metrics-grid">
+                <div class="metric-card primary">
+                    <div class="metric-value" id="orders-today">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <div class="metric-label">Pedidos Hoy</div>
                 </div>
-                <div class="kanban-cards column-content">
-                    <!-- Los pedidos se cargan dinámicamente aquí -->
+                <div class="metric-card success">
+                    <div class="metric-value" id="avg-response-time">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <div class="metric-label">Tiempo Promedio</div>
                 </div>
-            </div>
-
-            <!-- Columna Listo -->
-            <div class="kanban-column" data-status="ready">
-                <div class="column-header ready">
-                    <h3>Listos (0)</h3>
+                <div class="metric-card purple">
+                    <div class="metric-value" id="sales-today">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <div class="metric-label">Ventas del Día</div>
                 </div>
-                <div class="kanban-cards column-content">
-                    <!-- Los pedidos se cargan dinámicamente aquí -->
-                </div>
-            </div>
-
-            <!-- Columna Enviado -->
-            <div class="kanban-column" data-status="sent">
-                <div class="column-header sent">
-                    <h3>Enviados (0)</h3>
-                </div>
-                <div class="kanban-cards column-content">
-                    <!-- Los pedidos se cargan dinámicamente aquí -->
+                <div class="metric-card warning">
+                    <div class="metric-value" id="satisfaction">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <div class="metric-label">Satisfacción</div>
                 </div>
             </div>
 
-            <!-- Columna Pagado -->
-            <div class="kanban-column" data-status="paid">
-                <div class="column-header paid">
-                    <h3>Pagados (0)</h3>
-                </div>
-                <div class="kanban-cards column-content">
-                    <!-- Los pedidos se cargan dinámicamente aquí -->
-                </div>
-            </div>
+            <div class="worker-orders-panel">
+                <div class="kanban-board" aria-live="polite">
+                    <div class="kanban-column" data-status="received">
+                        <div class="kanban-column-header">
+                            <h3>Recibidos</h3>
+                            <span class="kanban-count" data-status-count="received">0</span>
+                        </div>
+                        <div class="kanban-column-content kanban-cards"></div>
+                    </div>
 
-            <!-- Columna Cerrado -->
-            <div class="kanban-column" data-status="closed">
-                <div class="column-header closed">
-                    <h3>Cerrados (0)</h3>
-                </div>
-                <div class="kanban-cards column-content">
-                    <!-- Los pedidos se cargan dinámicamente aquí -->
+                    <div class="kanban-column" data-status="preparing">
+                        <div class="kanban-column-header">
+                            <h3>En preparación</h3>
+                            <span class="kanban-count" data-status-count="preparing">0</span>
+                        </div>
+                        <div class="kanban-column-content kanban-cards"></div>
+                    </div>
+
+                    <div class="kanban-column" data-status="ready">
+                        <div class="kanban-column-header">
+                            <h3>Listos</h3>
+                            <span class="kanban-count" data-status-count="ready">0</span>
+                        </div>
+                        <div class="kanban-column-content kanban-cards"></div>
+                    </div>
+
+                    <div class="kanban-column" data-status="sent">
+                        <div class="kanban-column-header">
+                            <h3>En camino</h3>
+                            <span class="kanban-count" data-status-count="sent">0</span>
+                        </div>
+                        <div class="kanban-column-content kanban-cards"></div>
+                    </div>
+
+                    <div class="kanban-column" data-status="paid">
+                        <div class="kanban-column-header">
+                            <h3>Pagados</h3>
+                            <span class="kanban-count" data-status-count="paid">0</span>
+                        </div>
+                        <div class="kanban-column-content kanban-cards"></div>
+                    </div>
+
+                    <div class="kanban-column" data-status="closed">
+                        <div class="kanban-column-header">
+                            <h3>Cerrados</h3>
+                            <span class="kanban-count" data-status-count="closed">0</span>
+                        </div>
+                        <div class="kanban-column-content kanban-cards"></div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <section class="px-4 pb-5">
+            <div class="row g-4">
+                <div class="col-12 col-lg-6 col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Datos del negocio</h5>
+                            <p class="mb-3">Obtén los datos del usuario propietario autenticado.</p>
+                            <button id="obtener-info-btn" class="btn btn-primary w-100 mb-3" type="button">
+                                Consultar información
+                            </button>
+                            <div id="resultado" class="alert alert-secondary" role="status">Esperando consulta...</div>
+                            <ul class="list-unstyled mb-0">
+                                <li><strong>Nombre:</strong> <span id="user-name">--</span></li>
+                                <li><strong>Correo:</strong> <span id="user-email">--</span></li>
+                                <li><strong>Teléfono:</strong> <span id="user-phone">--</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-6 col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Actualizar nombre</h5>
+                            <p class="mb-3">Prueba el endpoint para cambiar el nombre del negocio.</p>
+                            <input type="text" id="nuevo-nombre" class="form-control" placeholder="Ingresa el nuevo nombre">
+                            <button id="actualizar-nombre-btn" class="btn btn-success w-100 mt-3" type="button">
+                                Actualizar nombre
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Buscar trabajador</h5>
+                            <p class="mb-3">Consulta rápida de un miembro del equipo por ID.</p>
+                            <input type="number" id="trabajador-id" class="form-control" placeholder="ID del trabajador">
+                            <button id="obtener-trabajador-btn" class="btn btn-info w-100 mt-3" type="button">
+                                Obtener trabajador
+                            </button>
+                            <div id="info-trabajador" class="mt-4">
+                                <p class="mb-1"><strong>Nombre:</strong> <span id="trabajador-nombre">--</span></p>
+                                <p class="mb-1"><strong>Correo:</strong> <span id="trabajador-email">--</span></p>
+                                <p class="mb-0"><strong>Teléfono:</strong> <span id="trabajador-telefono">--</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 </div>
 {% endblock %}

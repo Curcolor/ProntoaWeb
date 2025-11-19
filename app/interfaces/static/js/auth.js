@@ -36,10 +36,12 @@ async function handleLogin(e) {
   clearErrors();
   
   try {
+    const token = getCsrfToken();
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': token
       },
       credentials: 'include',
       body: JSON.stringify({ email, password, remember })
@@ -96,10 +98,12 @@ async function handleRegister(e) {
   clearErrors();
   
   try {
+    const token = getCsrfToken();
     const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': token
       },
       credentials: 'include',
       body: JSON.stringify(formData)
@@ -127,9 +131,13 @@ async function handleRegister(e) {
 
 async function logout() {
   try {
+    const token = getCsrfToken();
     const response = await fetch('/api/auth/logout', {
       method: 'POST',
-      credentials: 'include'
+      credentials: 'include',
+      headers: {
+        'X-CSRF-Token': token
+      }
     });
     
     // Limpiar localStorage

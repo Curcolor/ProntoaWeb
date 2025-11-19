@@ -25,12 +25,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar el código de la aplicación
 COPY . .
 
-# Copiar y dar permisos al entrypoint
+# Copiar y dar permisos al entrypoint (convertir CRLF a LF)
 COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# Crear directorio para uploads
-RUN mkdir -p uploads
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Crear usuario no-root para ejecutar la aplicación
 RUN adduser --disabled-password --gecos '' appuser && \
