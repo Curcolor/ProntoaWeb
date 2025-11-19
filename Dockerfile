@@ -5,7 +5,7 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     FLASK_APP=run.py \
-    FLASK_ENV=production \
+    FLASK_CONFIG=production \
     FLASK_HOST=0.0.0.0 \
     FLASK_PORT=5000
 

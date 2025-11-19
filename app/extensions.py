@@ -11,6 +11,7 @@ from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_socketio import SocketIO
 from flask_marshmallow import Marshmallow
+from flask_wtf import CSRFProtect
 
 # Inicializar extensiones
 db = SQLAlchemy()
@@ -20,6 +21,7 @@ bcrypt = Bcrypt()
 cors = CORS()
 socketio = SocketIO()
 ma = Marshmallow()
+csrf = CSRFProtect()
 
 
 def init_extensions(app: Flask) -> None:
@@ -57,6 +59,9 @@ def init_extensions(app: Flask) -> None:
     
     # Marshmallow for serialization
     ma.init_app(app)
+
+    # CSRF Protection
+    csrf.init_app(app)
     
     # Configurar user loader para Flask-Login
     from app.data.models import User

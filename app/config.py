@@ -20,6 +20,10 @@ class Config:
         'postgresql://prontoa_user:prontoa_pass@localhost:5432/prontoa_db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'echo': False,
+        'echo_pool': False
+    }
     
     # Configuración de debug
     DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
@@ -49,8 +53,8 @@ class Config:
 class DevelopmentConfig(Config):
     """Configuración para entorno de desarrollo."""
     DEBUG = True
-    SQLALCHEMY_ECHO = True
-    WTF_CSRF_ENABLED = False  # Deshabilitar CSRF en desarrollo
+    SQLALCHEMY_ECHO = False  # Deshabilitado para reducir logs
+    WTF_CSRF_ENABLED = False # Deshabilitar CSRF en desarrollo para facilitar pruebas
 
 class ProductionConfig(Config):
     """Configuración para entorno de producción."""
