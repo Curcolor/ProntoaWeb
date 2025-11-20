@@ -186,14 +186,25 @@ def _build_customer_identifier(message):
     return f"tg:{chat_id}"
 
 
+def _strip_code_fences(text):
+    """Elimina delimitadores ``` opcionales alrededor del contenido."""
+    if not isinstance(text, str):
+        return text
+    stripped = text.strip()
+    match = re.match(r"^```(?:[a-zA-Z0-9_-]+)?\s*(.*?)\s*```$", stripped, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return stripped
+
+
 def _try_parse_jsonish(text):
     """Intenta parsear un string que aparenta ser JSON aunque tenga ruido."""
     if not text:
         return None
-    cleaned = text.strip()
-    if cleaned.startswith('```'):
-        cleaned = re.sub(r'^```(?:json)?', '', cleaned).strip()
-        cleaned = re.sub(r'```$', '', cleaned).strip()
+    cleaned = _strip_code_fences(text)
+    # Remover trailing texto después de último cierre }
+    if '}' in cleaned:
+        cleaned = cleaned[:cleaned.rfind('}') + 1]
     # Buscar primer bloque JSON delimitado por llaves
     match = re.search(r'\{.*\}', cleaned, re.DOTALL)
     candidate = match.group(0) if match else cleaned
@@ -219,12 +230,7 @@ def _clean_ai_response_text(raw_text):
     if isinstance(raw_text, list):
         return '\n'.join(str(item) for item in raw_text if item)
 
-    text = str(raw_text).strip()
-
-    # El modelo a veces envía bloques ```json ... ```
-    if text.startswith('```'):
-        text = re.sub(r'^```(?:json)?', '', text).strip()
-        text = re.sub(r'```$', '', text).strip()
+    text = _strip_code_fences(str(raw_text))
 
     if text.startswith('{') or '"response"' in text:
         parsed = _try_parse_jsonish(text)
