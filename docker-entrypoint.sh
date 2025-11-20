@@ -3,24 +3,32 @@ set -e
 
 echo "🚀 Iniciando ProntoaWEB..."
 
-# Esperar a que PostgreSQL esté listo
-echo "⏳ Esperando a PostgreSQL..."
-while ! pg_isready -h db -p 5432 -U prontoa_user > /dev/null 2>&1; do
-    sleep 1
-done
-echo "✅ PostgreSQL está listo"
-
-# Verificar si las tablas ya existen
-TABLE_EXISTS=$(PGPASSWORD=prontoa_pass psql -h db -U prontoa_user -d prontoa_db -tAc "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name='users';")
-
-if [ "$TABLE_EXISTS" = "0" ]; then
-    echo "📊 Base de datos vacía, ejecutando seed..."
-    python -m app.scripts.seed_database
-    echo "✅ Base de datos inicializada con datos de prueba"
-else
-    echo "ℹ️  Base de datos ya inicializada, omitiendo seed"
+# Permitir comandos personalizados desde docker-compose (default: python run.py)
+if [ $# -eq 0 ]; then
+    set -- python run.py
 fi
 
-# Iniciar la aplicación Flask
-echo "🌐 Iniciando servidor Flask en puerto 5000..."
-exec python run.py
+DB_URL=${DATABASE_URL:-postgresql://prontoa_user:prontoa_pass@db:5432/prontoa_db}
+
+wait_for_db=${WAIT_FOR_DB:-true}
+if [ "$wait_for_db" != "false" ]; then
+    echo "⏳ Esperando a PostgreSQL..."
+    until pg_isready -d "$DB_URL" >/dev/null 2>&1; do
+        sleep 1
+    done
+    echo "✅ PostgreSQL está listo"
+fi
+
+if [ "${SKIP_DB_SEED:-false}" != "true" ]; then
+    TABLE_EXISTS=$(psql "$DB_URL" -tAc "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name='users';" || echo "0")
+    if [ "$TABLE_EXISTS" = "0" ]; then
+        echo "📊 Base de datos vacía, ejecutando seed..."
+        python -m app.scripts.seed_database
+        echo "✅ Base de datos inicializada con datos de prueba"
+    else
+        echo "ℹ️ Base de datos ya inicializada, omitiendo seed"
+    fi
+fi
+
+echo "🚀 Ejecutando comando: $*"
+exec "$@"

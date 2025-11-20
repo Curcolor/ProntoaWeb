@@ -4,6 +4,8 @@ Servicio de Inteligencia Artificial para procesamiento de pedidos..
 import openai
 import json
 import re
+import unicodedata
+import copy
 from flask import current_app
 from app.extensions import db
 from app.data.models import AIConversation, Product, Order
@@ -17,7 +19,7 @@ class AIAgentService:
         # Configurar para Perplexity AI
         openai.api_key = current_app.config.get('PERPLEXITY_API_KEY')
         openai.api_base = "https://api.perplexity.ai"
-        self.model = current_app.config.get('PERPLEXITY_MODEL', 'llama-3.1-sonar-small-128k-online')
+        self.model = current_app.config.get('PERPLEXITY_MODEL', 'sonar')
     
     def process_message(self, customer_phone, message_text, business_id, channel='whatsapp'):
         """
@@ -37,6 +39,17 @@ class AIAgentService:
                 customer_phone=customer_phone,
                 business_id=business_id
             ).order_by(AIConversation.updated_at.desc()).first()
+
+            pending_confirmation = self._get_pending_confirmation(conversation)
+            if pending_confirmation:
+                return self._handle_pending_confirmation(
+                    conversation=conversation,
+                    pending_data=pending_confirmation,
+                    message_text=message_text,
+                    business_id=business_id,
+                    customer_phone=customer_phone,
+                    channel=channel
+                )
             
             context = conversation.conversation_context if conversation else []
             
@@ -45,6 +58,8 @@ class AIAgentService:
                 'role': 'user',
                 'content': message_text
             })
+
+            pending_confirmation_payload = None
             
             # Obtener catálogo de productos
             products = Product.query.filter_by(
@@ -130,7 +145,25 @@ class AIAgentService:
                 }
             
             # Validar campos obligatorios antes de guardar
-            self._enforce_required_fields(result)
+            self._enforce_required_fields(result, message_text)
+            entities_snapshot = copy.deepcopy(result.get('entities', {}))
+
+            if result.get('ready_to_create_order') and result['intent'] == 'hacer_pedido':
+                summary = self._build_order_summary(result.get('entities', {}))
+                confirmation_prompt = (
+                    f"{summary}\n\n¿Estás seguro(a) de confirmar este pedido? Responde 'sí' para continuar o 'no' para editar."
+                    if summary else
+                    "¿Confirmas que deseas que registremos el pedido? Responde 'sí' para continuar o 'no' para cambiarlo."
+                )
+                result['response'] = confirmation_prompt
+                result['needs_confirmation'] = True
+                result['ready_to_create_order'] = False
+                pending_confirmation_payload = {
+                    'entities': copy.deepcopy(result.get('entities', {})),
+                    'summary': summary,
+                    'channel': channel,
+                    'confidence': result.get('confidence', 0.0)
+                }
 
             # Guardar o actualizar conversación
             if conversation:
@@ -139,7 +172,7 @@ class AIAgentService:
                     'content': result['response']
                 }]
                 conversation.extracted_intent = result['intent']
-                conversation.extracted_entities = result['entities']
+                conversation.extracted_entities = copy.deepcopy(entities_snapshot)
                 conversation.confidence_score = result['confidence']
             else:
                 conversation = AIConversation(
@@ -150,29 +183,15 @@ class AIAgentService:
                         'content': result['response']
                     }],
                     extracted_intent=result['intent'],
-                    extracted_entities=result['entities'],
+                    extracted_entities=copy.deepcopy(entities_snapshot),
                     confidence_score=result['confidence']
                 )
                 db.session.add(conversation)
+
+            if pending_confirmation_payload:
+                self._set_pending_confirmation(conversation, pending_confirmation_payload)
             
             db.session.commit()
-            
-            # Si el pedido está listo, crear automáticamente
-            if result.get('ready_to_create_order') and result['intent'] == 'hacer_pedido':
-                order_created, order = self._auto_create_order(
-                    business_id=business_id,
-                    customer_phone=customer_phone,
-                    ai_result=result,
-                    channel=channel
-                )
-
-                if order_created and order:
-                    result['order_created'] = True
-                    result['order_number'] = order.order_number
-                    if result.get('response'):
-                        result['response'] = f"{result['response']}\n\nPedido #{order.order_number} registrado ✅"
-                    else:
-                        result['response'] = f"Pedido #{order.order_number} registrado ✅"
             
             return result
             
@@ -201,7 +220,7 @@ class AIAgentService:
             products_data = entities.get('products', [])
             
             if not products_data:
-                return
+                return False, None
             
             # Buscar productos en la base de datos y crear items
             items = []
@@ -218,7 +237,7 @@ class AIAgentService:
                     })
             
             if not items:
-                return
+                return False, None
             
             # Crear pedido
             order_type = entities.get('delivery_type', 'delivery')
@@ -247,7 +266,7 @@ class AIAgentService:
             current_app.logger.error(f"Error creando pedido automático: {str(e)}")
             return False, None
 
-    def _enforce_required_fields(self, result):
+    def _enforce_required_fields(self, result, message_text):
         """Revisa campos obligatorios para crear pedidos y ajusta flags."""
         try:
             entities = result.setdefault('entities', {})
@@ -275,6 +294,11 @@ class AIAgentService:
 
             delivery_type = (entities.get('delivery_type') or '').lower()
             if delivery_type not in {'delivery', 'pickup'}:
+                inferred = self._infer_delivery_type_from_text(message_text)
+                if inferred:
+                    delivery_type = inferred
+                    entities['delivery_type'] = delivery_type
+            if delivery_type not in {'delivery', 'pickup'}:
                 missing.add('delivery_type')
             else:
                 entities['delivery_type'] = delivery_type
@@ -289,9 +313,11 @@ class AIAgentService:
                 result['needs_more_info'] = True
                 existing = set(result.get('missing_info', []))
                 result['missing_info'] = list(existing.union(missing))
+                result['missing_info_message'] = self._friendly_missing_info_message(missing, delivery_type)
             else:
                 result.setdefault('missing_info', [])
                 result.setdefault('needs_more_info', False)
+                result.pop('missing_info_message', None)
 
         except Exception as exc:
             current_app.logger.error(f"Error validando campos obligatorios: {exc}")
@@ -299,14 +325,174 @@ class AIAgentService:
     def _notify_order_created(self, order, channel):
         """Envía la confirmación de pedido al canal correspondiente."""
         try:
-            if channel == 'telegram':
-                from app.services.telegram_service import TelegramService
-                TelegramService().send_order_confirmation(order)
-            else:
+            if channel == 'whatsapp':
                 from app.services.whatsapp_service import WhatsAppService
                 WhatsAppService().send_order_confirmation(order)
+            else:
+                current_app.logger.debug(f"Notificación de pedido omitida para canal {channel}")
         except Exception as exc:
             current_app.logger.error(f"No se pudo notificar pedido en {channel}: {exc}")
+
+    def _handle_pending_confirmation(self, conversation, pending_data, message_text, business_id, customer_phone, channel):
+        decision = self._interpret_confirmation_message(message_text)
+        summary = pending_data.get('summary')
+        response_payload = {
+            'intent': 'hacer_pedido',
+            'confidence': pending_data.get('confidence', 0.9),
+            'entities': pending_data.get('entities', {}),
+            'needs_more_info': False,
+            'ready_to_create_order': False
+        }
+
+        context_entries = [{'role': 'user', 'content': message_text}]
+
+        if decision == 'yes':
+            success, order = self._auto_create_order(
+                business_id=business_id,
+                customer_phone=customer_phone,
+                ai_result={'entities': pending_data.get('entities', {}), 'intent': 'hacer_pedido'},
+                channel=channel
+            )
+            if success and order:
+                response_text = f"Pedido #{order.order_number} confirmado ✅"
+                response_payload.update({
+                    'response': response_text,
+                    'order_created': True,
+                    'order_number': order.order_number
+                })
+            else:
+                response_text = 'No pude registrar el pedido. Intenta nuevamente o contacta a un agente.'
+                response_payload['response'] = response_text
+            self._clear_pending_confirmation(conversation)
+            context_entries.append({'role': 'assistant', 'content': response_text})
+            self._append_conversation_entries(conversation, context_entries)
+            conversation.extracted_entities = pending_data.get('entities', {})
+            conversation.extracted_intent = 'hacer_pedido'
+            db.session.commit()
+            return response_payload
+
+        if decision == 'no':
+            self._clear_pending_confirmation(conversation)
+            response_text = 'Pedido cancelado. Cuéntame qué deseas cambiar y con gusto te ayudo.'
+            response_payload['response'] = response_text
+            context_entries.append({'role': 'assistant', 'content': response_text})
+            self._append_conversation_entries(conversation, context_entries)
+            db.session.commit()
+            return response_payload
+
+        reminder = summary or 'Tengo tu pedido listo para registrar.'
+        reminder = f"{reminder}\n\nSolo necesito un 'sí' para confirmarlo o un 'no' para editarlo."
+        response_payload.update({
+            'response': reminder,
+            'needs_confirmation': True
+        })
+        context_entries.append({'role': 'assistant', 'content': reminder})
+        self._append_conversation_entries(conversation, context_entries)
+        db.session.commit()
+        return response_payload
+
+    def _set_pending_confirmation(self, conversation, data):
+        if not conversation:
+            return
+        meta = copy.deepcopy(conversation.extracted_entities) if conversation.extracted_entities else {}
+        meta['pending_confirmation'] = {
+            'entities': copy.deepcopy(data.get('entities', {})),
+            'summary': data.get('summary'),
+            'confidence': data.get('confidence', 0.9)
+        }
+        meta['awaiting_confirmation'] = True
+        conversation.extracted_entities = meta
+
+    def _get_pending_confirmation(self, conversation):
+        if not conversation:
+            return None
+        meta = conversation.extracted_entities or {}
+        if meta.get('awaiting_confirmation'):
+            return copy.deepcopy(meta.get('pending_confirmation'))
+        return None
+
+    def _clear_pending_confirmation(self, conversation):
+        if not conversation:
+            return
+        meta = copy.deepcopy(conversation.extracted_entities) if conversation.extracted_entities else {}
+        meta.pop('pending_confirmation', None)
+        meta.pop('awaiting_confirmation', None)
+        conversation.extracted_entities = meta
+
+    def _append_conversation_entries(self, conversation, entries):
+        if not conversation:
+            return
+        context = copy.deepcopy(conversation.conversation_context) if conversation.conversation_context else []
+        context.extend(copy.deepcopy(entries))
+        conversation.conversation_context = context
+
+    def _interpret_confirmation_message(self, message_text):
+        normalized = self._normalize_text(message_text)
+        if not normalized:
+            return None
+        yes_keywords = {'si', 'sí', 'sii', 'claro', 'confirmo', 'adelante', 'vale', 'ok', 'de acuerdo'}
+        no_keywords = {'no', 'nel', 'cancela', 'cancelar', 'mejor no'}
+        if any(keyword in normalized for keyword in yes_keywords):
+            return 'yes'
+        if any(keyword in normalized for keyword in no_keywords):
+            return 'no'
+        return None
+
+    def _build_order_summary(self, entities):
+        if not entities:
+            return ''
+        lines = ['Resumen del pedido:']
+        products = entities.get('products') or []
+        for item in products:
+            name = item.get('name')
+            quantity = item.get('quantity', 1)
+            if name:
+                lines.append(f"• {name} x{quantity}")
+        delivery_type = entities.get('delivery_type')
+        if delivery_type == 'delivery':
+            address = entities.get('address') or 'dirección pendiente'
+            lines.append(f"Entrega: delivery a {address}")
+        elif delivery_type == 'pickup':
+            lines.append('Entrega: recoger en el local')
+        customer_name = entities.get('customer_name')
+        if customer_name:
+            lines.append(f"Cliente: {customer_name}")
+        return "\n".join([line for line in lines if line])
+
+    def _friendly_missing_info_message(self, missing_fields, delivery_type):
+        friendly_map = {
+            'products': 'qué productos del menú deseas',
+            'customer_name': 'tu nombre',
+            'delivery_type': 'si es para delivery o para recoger en local',
+            'address': 'la dirección completa de entrega'
+        }
+        pieces = [friendly_map[field] for field in sorted(missing_fields) if field in friendly_map]
+        if 'address' in missing_fields and delivery_type != 'delivery':
+            pieces.append('confirma si es delivery o pickup')
+        if not pieces:
+            return 'Necesito un poco más de información para continuar.'
+        joined = ', '.join(pieces)
+        return f"Para continuar necesito: {joined}."
+
+    def _infer_delivery_type_from_text(self, text):
+        if not text:
+            return None
+        lowered = text.lower()
+        pickup_keywords = ['recoger', 'recojo', 'retiro', 'paso por', 'voy por', 'pickup', 'para llevar']
+        delivery_keywords = ['envio', 'envío', 'entrega', 'mandalo', 'mándalo', 'traer', 'a domicilio', 'delivery']
+        if any(word in lowered for word in pickup_keywords):
+            return 'pickup'
+        if any(word in lowered for word in delivery_keywords):
+            return 'delivery'
+        return None
+
+    @staticmethod
+    def _normalize_text(text):
+        if not text:
+            return ''
+        normalized = unicodedata.normalize('NFKD', text)
+        normalized = ''.join(ch for ch in normalized if not unicodedata.combining(ch))
+        return normalized.strip().lower()
     
     def generate_response(self, intent, context=None):
         """

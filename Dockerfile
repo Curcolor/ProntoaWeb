@@ -40,3 +40,4 @@ EXPOSE 5000
 
 # Comando de inicio con entrypoint
 ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["python", "run.py"]

@@ -905,34 +905,25 @@ def update_order_status_worker(order_id):
                 'message': f'Transición no permitida: {current_status} → {new_status}'
             }), 400
         
-        # Actualizar el estado
-        from datetime import datetime, timezone
-        from app.extensions import db
-        
-        order.status = new_status
-        order.updated_at = datetime.now(timezone.utc)
-        
-        # Actualizar campos específicos según el estado
-        if new_status == 'preparing':
-            order.preparing_at = datetime.now(timezone.utc)
-        elif new_status == 'ready':
-            order.ready_at = datetime.now(timezone.utc)
-        elif new_status == 'sent':
-            order.sent_at = datetime.now(timezone.utc)
-        elif new_status == 'paid':
-            order.paid_at = datetime.now(timezone.utc)
-        
-        db.session.commit()
-        
+        success, message, updated_order = OrderService.update_order_status(
+            order_id=order.id,
+            new_status=new_status,
+            user_id=getattr(current_user, 'id', None)
+        )
+
+        if not success:
+            return jsonify({
+                'success': False,
+                'message': message
+            }), 400
+
         return jsonify({
             'success': True,
-            'message': f'Pedido actualizado a {new_status}',
-            'order': order_schema.dump(order)
+            'message': message,
+            'order': order_schema.dump(updated_order)
         }), 200
         
     except Exception as e:
-        from app.extensions import db
-        db.session.rollback()
         return jsonify({
             'success': False,
             'message': f'Error actualizando pedido: {str(e)}'

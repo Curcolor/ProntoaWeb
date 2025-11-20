@@ -32,9 +32,9 @@ requests==2.31.0
 twilio==8.10.0
 
 # AI/ML for Order Processing (Perplexity compatible con OpenAI API)
-openai==1.3.7
+openai==0.28.1
 langchain==0.0.340
-python-telegram-bot==20.7
+python-telegram-bot==13.15
 
 # Real-time Notifications
 Flask-SocketIO==5.3.5
