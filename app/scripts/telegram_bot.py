@@ -1,10 +1,13 @@
 """Runner del bot de Telegram usando python-telegram-bot estilo tutorial."""
+import json
 import logging
 import os
+import re
 from functools import wraps
 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, ParseMode, ForceReply
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
+from telegram.error import TelegramError, BadRequest
 
 from app import create_app
 from app.services.ai_service import AIAgentService
@@ -107,33 +110,63 @@ def echo(update: Update, context: CallbackContext):
     telegram_service.log_incoming_message(update.to_dict())
 
     if screaming:
-        context.bot.send_message(chat_id, text.upper(), entities=message.entities)
-        telegram_service.log_outgoing_message(chat_id, text.upper())
+        try:
+            context.bot.send_message(chat_id, text.upper(), entities=message.entities)
+            telegram_service.log_outgoing_message(chat_id, text.upper())
+        except Exception as e:
+            logger.error(f"Error en modo screaming: {e}")
+            _send_safe_message(context, chat_id, text.upper(), telegram_service)
         return
 
     business_id = _get_active_business_id()
     if not business_id:
-        context.bot.send_message(chat_id, 'Aún no hay negocio activo configurado. Inténtalo más tarde.')
+        _send_safe_message(context, chat_id, 'Aún no hay negocio activo configurado. Inténtalo más tarde.')
         return
 
     customer_identifier = _build_customer_identifier(message)
     ai_agent = AIAgentService()
-    result = ai_agent.process_message(
-        customer_phone=customer_identifier,
-        message_text=text,
-        business_id=business_id,
-        channel='telegram'
-    )
+    
+    try:
+        result = ai_agent.process_message(
+            customer_phone=customer_identifier,
+            message_text=text,
+            business_id=business_id,
+            channel='telegram'
+        )
 
-    response_text = result.get('response')
-    if response_text:
-        context.bot.send_message(chat_id, response_text, parse_mode=ParseMode.MARKDOWN)
-        telegram_service.log_outgoing_message(chat_id, response_text)
+        # Log para debugging
+        logger.info(f"Tipo de resultado: {type(result)}")
+        logger.info(f"Resultado AI (primeros 200 chars): {str(result)[:200]}")
+        
+        # Asegurar que result sea un dict
+        if isinstance(result, str):
+            parsed = _try_parse_jsonish(result)
+            if parsed:
+                logger.info('Resultado string convertido a dict tras parseo adicional.')
+                result = parsed
+        
+        if not isinstance(result, dict):
+            logger.error(f"El resultado no es un diccionario: {result}")
+            clean = _clean_ai_response_text(result)
+            _send_safe_message(context, chat_id, clean or "Lo siento, hubo un problema procesando tu mensaje.", telegram_service)
+            return
 
-    if result.get('needs_more_info') and result.get('missing_info'):
-        friendly = result.get('missing_info_message') or 'Necesito algunos datos adicionales para continuar con tu pedido.'
-        context.bot.send_message(chat_id, friendly)
-        telegram_service.log_outgoing_message(chat_id, friendly)
+        response_text = _clean_ai_response_text(result.get('response'))
+        logger.info(f"Texto de respuesta extraído: {response_text[:100]}")
+        
+        if response_text:
+            _send_safe_message(context, chat_id, response_text, telegram_service)
+        
+        # No enviar mensaje duplicado de missing_info si ya está en la respuesta
+        if result.get('needs_more_info') and result.get('missing_info_message'):
+            missing_msg = result.get('missing_info_message', '')
+            # Solo enviar si no está ya incluido en response_text
+            if missing_msg and missing_msg not in response_text:
+                _send_safe_message(context, chat_id, missing_msg, telegram_service)
+                
+    except Exception as e:
+        logger.error(f"Error procesando mensaje con AI: {e}", exc_info=True)
+        _send_safe_message(context, chat_id, "Lo siento, hubo un error procesando tu solicitud. Por favor intenta nuevamente.", telegram_service)
 
 
 def _get_active_business_id():
@@ -153,6 +186,106 @@ def _build_customer_identifier(message):
     return f"tg:{chat_id}"
 
 
+def _try_parse_jsonish(text):
+    """Intenta parsear un string que aparenta ser JSON aunque tenga ruido."""
+    if not text:
+        return None
+    cleaned = text.strip()
+    if cleaned.startswith('```'):
+        cleaned = re.sub(r'^```(?:json)?', '', cleaned).strip()
+        cleaned = re.sub(r'```$', '', cleaned).strip()
+    # Buscar primer bloque JSON delimitado por llaves
+    match = re.search(r'\{.*\}', cleaned, re.DOTALL)
+    candidate = match.group(0) if match else cleaned
+    try:
+        return json.loads(candidate)
+    except json.JSONDecodeError:
+        return None
+
+
+def _clean_ai_response_text(raw_text):
+    """Devuelve un texto legible a partir del campo response."""
+    if raw_text is None:
+        return ''
+
+    if isinstance(raw_text, dict):
+        nested = raw_text.get('response') or raw_text.get('message') or raw_text.get('text')
+        if nested:
+            return _clean_ai_response_text(nested)
+        # Como último recurso, concatenar valores simples
+        pieces = [f"{k}: {v}" for k, v in raw_text.items() if isinstance(v, (str, int, float))]
+        return '\n'.join(pieces)
+
+    if isinstance(raw_text, list):
+        return '\n'.join(str(item) for item in raw_text if item)
+
+    text = str(raw_text).strip()
+
+    # El modelo a veces envía bloques ```json ... ```
+    if text.startswith('```'):
+        text = re.sub(r'^```(?:json)?', '', text).strip()
+        text = re.sub(r'```$', '', text).strip()
+
+    if text.startswith('{') or '"response"' in text:
+        parsed = _try_parse_jsonish(text)
+        if isinstance(parsed, dict):
+            nested = parsed.get('response') or parsed.get('message') or parsed.get('text')
+            if nested:
+                return _clean_ai_response_text(nested)
+        if parsed is not None:
+            # No encontramos campo específico pero había JSON válido
+            return '\n'.join(f"{k}: {v}" for k, v in parsed.items()) if isinstance(parsed, dict) else str(parsed)
+
+    return text
+
+
+def _escape_markdown(text):
+    """Escapa caracteres especiales de Markdown V1."""
+    if not text:
+        return text
+    # Caracteres especiales de Markdown que necesitan ser escapados
+    escape_chars = r'_*[]()~`>#+-=|{}.!'
+    return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
+
+
+def _send_safe_message(context, chat_id, text, telegram_service=None):
+    """Envía un mensaje de forma segura, intentando con Markdown y fallback a texto plano."""
+    try:
+        # Primero intenta sin parse_mode (texto plano)
+        context.bot.send_message(chat_id, text)
+        if telegram_service:
+            telegram_service.log_outgoing_message(chat_id, text)
+        return True
+    except BadRequest as e:
+        logger.error(f"Error enviando mensaje: {e}")
+        # Si falla, intenta con un mensaje genérico
+        try:
+            context.bot.send_message(chat_id, "Lo siento, hubo un problema procesando tu solicitud. Por favor, intenta nuevamente.")
+            if telegram_service:
+                telegram_service.log_outgoing_message(chat_id, "Error en el mensaje")
+        except Exception as ex:
+            logger.error(f"Error crítico enviando mensaje de fallback: {ex}")
+        return False
+    except Exception as e:
+        logger.error(f"Error inesperado enviando mensaje: {e}")
+        return False
+
+
+def error_handler(update: Update, context: CallbackContext):
+    """Maneja errores globales del bot."""
+    logger.error(f'Error en actualización {update}: {context.error}')
+    
+    # Intenta notificar al usuario si es posible
+    if update and update.effective_chat:
+        try:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Lo siento, ocurrió un error procesando tu mensaje. Por favor intenta nuevamente."
+            )
+        except Exception as e:
+            logger.error(f'Error enviando mensaje de error al usuario: {e}')
+
+
 def main():
     with flask_app.app_context():
         token = flask_app.config.get('TELEGRAM_BOT_TOKEN')
@@ -162,12 +295,16 @@ def main():
         updater = Updater(token)
         dispatcher = updater.dispatcher
 
+        # Agregar handlers
         dispatcher.add_handler(CommandHandler('start', start))
         dispatcher.add_handler(CommandHandler('scream', scream))
         dispatcher.add_handler(CommandHandler('whisper', whisper))
         dispatcher.add_handler(CommandHandler('menu', menu))
         dispatcher.add_handler(CallbackQueryHandler(button_tap))
         dispatcher.add_handler(MessageHandler(~Filters.command, echo))
+        
+        # Agregar error handler global
+        dispatcher.add_error_handler(error_handler)
 
         logger.info('Bot de Telegram iniciado. Presiona Ctrl+C para detenerlo.')
         updater.start_polling()
