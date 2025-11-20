@@ -19,7 +19,7 @@ class AIAgentService:
         openai.api_base = "https://api.perplexity.ai"
         self.model = current_app.config.get('PERPLEXITY_MODEL', 'llama-3.1-sonar-small-128k-online')
     
-    def process_message(self, customer_phone, message_text, business_id):
+    def process_message(self, customer_phone, message_text, business_id, channel='whatsapp'):
         """
         Procesa un mensaje del cliente usando IA.
         
@@ -60,30 +60,39 @@ class AIAgentService:
             # Crear prompt CORTO y RESTRICTIVO para ahorrar tokens
             system_prompt = f"""Asistente de pedidos. Solo procesa pedidos del catálogo.
 
-CATÁLOGO:
-{products_info}
+    CATÁLOGO:
+    {products_info}
 
-REGLAS ESTRICTAS:
-1. SOLO habla de productos del catálogo
-2. Respuestas CORTAS (máx 2 líneas)
-3. NO respondas temas fuera del negocio
-4. Si preguntan otra cosa: "Solo tomo pedidos"
+    REGLAS ESTRICTAS:
+    1. SOLO habla de productos del catálogo
+    2. Respuestas CORTAS (máx 2 líneas)
+    3. NO respondas temas fuera del negocio
+    4. Si preguntan otra cosa: "Solo tomo pedidos"
 
-Responde JSON:
-{{
-    "intent": "hacer_pedido|consulta|saludo|otro",
-    "confidence": 0.95,
-    "entities": {{
-        "products": [{{"name": "producto", "quantity": 1, "unit_price": 5000}}],
-        "delivery_type": "delivery|pickup",
-        "address": "direccion",
-        "customer_name": "nombre"
-    }},
-    "response": "Respuesta CORTA",
-    "needs_more_info": true/false,
-    "missing_info": ["direccion"],
-    "ready_to_create_order": true/false
-}}""".strip()
+    REQUISITOS PARA PEDIDO COMPLETO:
+    - Mínimo un producto válido del catálogo con cantidad
+    - Nombre del cliente
+    - delivery_type definido (delivery o pickup)
+    - Si delivery_type=delivery, dirección obligatoria
+    - Si pickup, dirección opcional
+    - ready_to_create_order SOLO puede ser true cuando TODOS los campos estén completos
+    En caso contrario, indica missing_info y needs_more_info=true.
+
+    Responde JSON:
+    {{
+        "intent": "hacer_pedido|consulta|saludo|otro",
+        "confidence": 0.95,
+        "entities": {{
+            "products": [{{"name": "producto", "quantity": 1, "unit_price": 5000}}],
+            "delivery_type": "delivery|pickup",
+            "address": "direccion",
+            "customer_name": "nombre"
+        }},
+        "response": "Respuesta CORTA",
+        "needs_more_info": true/false,
+        "missing_info": ["direccion"],
+        "ready_to_create_order": true/false
+    }}""".strip()
             
             # Llamar a Perplexity AI (compatible con OpenAI)
             messages = [
@@ -120,6 +129,9 @@ Responde JSON:
                     'ready_to_create_order': False
                 }
             
+            # Validar campos obligatorios antes de guardar
+            self._enforce_required_fields(result)
+
             # Guardar o actualizar conversación
             if conversation:
                 conversation.conversation_context = context + [{
@@ -147,7 +159,20 @@ Responde JSON:
             
             # Si el pedido está listo, crear automáticamente
             if result.get('ready_to_create_order') and result['intent'] == 'hacer_pedido':
-                self._auto_create_order(business_id, customer_phone, result)
+                order_created, order = self._auto_create_order(
+                    business_id=business_id,
+                    customer_phone=customer_phone,
+                    ai_result=result,
+                    channel=channel
+                )
+
+                if order_created and order:
+                    result['order_created'] = True
+                    result['order_number'] = order.order_number
+                    if result.get('response'):
+                        result['response'] = f"{result['response']}\n\nPedido #{order.order_number} registrado ✅"
+                    else:
+                        result['response'] = f"Pedido #{order.order_number} registrado ✅"
             
             return result
             
@@ -162,7 +187,7 @@ Responde JSON:
                 'ready_to_create_order': False
             }
     
-    def _auto_create_order(self, business_id, customer_phone, ai_result):
+    def _auto_create_order(self, business_id, customer_phone, ai_result, channel='whatsapp'):
         """
         Crea automáticamente un pedido basado en la respuesta de IA.
         
@@ -212,14 +237,76 @@ Responde JSON:
             
             if success:
                 current_app.logger.info(f"Pedido {order.order_number} creado automáticamente")
-                
-                # Enviar confirmación por WhatsApp
-                from app.services.whatsapp_service import WhatsAppService
-                whatsapp = WhatsAppService()
-                whatsapp.send_order_confirmation(order)
+                self._notify_order_created(order, channel)
+                return True, order
+            
+            current_app.logger.warning(f"No se pudo crear pedido automáticamente: {message}")
+            return False, None
             
         except Exception as e:
             current_app.logger.error(f"Error creando pedido automático: {str(e)}")
+            return False, None
+
+    def _enforce_required_fields(self, result):
+        """Revisa campos obligatorios para crear pedidos y ajusta flags."""
+        try:
+            entities = result.setdefault('entities', {})
+            missing = set()
+
+            products = entities.get('products') or []
+            valid_products = []
+            for prod in products:
+                name = (prod or {}).get('name')
+                quantity = max(1, (prod or {}).get('quantity', 1))
+                if name:
+                    valid_products.append({
+                        'name': name,
+                        'quantity': quantity,
+                        'unit_price': (prod or {}).get('unit_price')
+                    })
+            entities['products'] = valid_products
+            if not valid_products:
+                missing.add('products')
+
+            customer_name = (entities.get('customer_name') or '').strip()
+            entities['customer_name'] = customer_name or None
+            if not customer_name:
+                missing.add('customer_name')
+
+            delivery_type = (entities.get('delivery_type') or '').lower()
+            if delivery_type not in {'delivery', 'pickup'}:
+                missing.add('delivery_type')
+            else:
+                entities['delivery_type'] = delivery_type
+                if delivery_type == 'delivery':
+                    address = (entities.get('address') or '').strip()
+                    entities['address'] = address or None
+                    if not address:
+                        missing.add('address')
+
+            if missing:
+                result['ready_to_create_order'] = False
+                result['needs_more_info'] = True
+                existing = set(result.get('missing_info', []))
+                result['missing_info'] = list(existing.union(missing))
+            else:
+                result.setdefault('missing_info', [])
+                result.setdefault('needs_more_info', False)
+
+        except Exception as exc:
+            current_app.logger.error(f"Error validando campos obligatorios: {exc}")
+
+    def _notify_order_created(self, order, channel):
+        """Envía la confirmación de pedido al canal correspondiente."""
+        try:
+            if channel == 'telegram':
+                from app.services.telegram_service import TelegramService
+                TelegramService().send_order_confirmation(order)
+            else:
+                from app.services.whatsapp_service import WhatsAppService
+                WhatsAppService().send_order_confirmation(order)
+        except Exception as exc:
+            current_app.logger.error(f"No se pudo notificar pedido en {channel}: {exc}")
     
     def generate_response(self, intent, context=None):
         """

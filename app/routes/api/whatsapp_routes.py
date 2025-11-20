@@ -84,7 +84,8 @@ def receive_message():
                                 result = ai_agent.process_message(
                                     customer_phone=from_phone,
                                     message_text=text_content,
-                                    business_id=business_id
+                                    business_id=business_id,
+                                    channel='whatsapp'
                                 )
                                 
                                 # Enviar respuesta automática

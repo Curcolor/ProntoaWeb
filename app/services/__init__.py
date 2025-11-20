@@ -5,6 +5,7 @@ from app.services.auth_service import AuthService
 from app.services.order_service import OrderService
 from app.services.kpi_service import KPIService
 from app.services.whatsapp_service import WhatsAppService
+from app.services.telegram_service import TelegramService
 from app.services.ai_service import AIAgentService
 from app.services.worker_service import WorkerService
 
@@ -13,6 +14,7 @@ __all__ = [
     'OrderService',
     'KPIService',
     'WhatsAppService',
+    'TelegramService',
     'AIAgentService',
     'WorkerService'
 ]

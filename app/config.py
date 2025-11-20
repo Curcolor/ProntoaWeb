@@ -49,6 +49,10 @@ class Config:
     # Perplexity AI for AI Agent (compatible con OpenAI API)
     PERPLEXITY_API_KEY = os.environ.get('PERPLEXITY_API_KEY')
     PERPLEXITY_MODEL = os.environ.get('PERPLEXITY_MODEL', 'llama-3.1-sonar-small-128k-online')
+
+    # Telegram Bot API (integración provisional)
+    TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+    TELEGRAM_WEBHOOK_SECRET = os.environ.get('TELEGRAM_WEBHOOK_SECRET', 'prontoa-telegram-webhook')
     
     # Pagination
     ITEMS_PER_PAGE = 25
