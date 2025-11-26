@@ -29,12 +29,3 @@ jobs:
         tags: |
           ghcr.io/curcolor/prontoaweb-web:latest
           ghcr.io/curcolor/prontoaweb-bot:latest
-
-    # Si usas una imagen propia para la base de datos, descomenta esta sección
-    # - name: Build and push db image
-    #   uses: docker/build-push-action@v4
-    #   with:
-    #     context: .
-    #     file: Dockerfile.db
-    #     push: true
-    #     tags: ghcr.io/curcolor/prontoaweb-db:latest
