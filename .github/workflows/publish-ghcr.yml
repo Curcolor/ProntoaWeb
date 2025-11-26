@@ -29,3 +29,9 @@ jobs:
         tags: |
           ghcr.io/curcolor/prontoaweb-web:latest
           ghcr.io/curcolor/prontoaweb-bot:latest
+
+    - name: Re-tag and push database image
+      run: |
+        docker pull postgres:15-alpine
+        docker tag postgres:15-alpine ghcr.io/${{ github.repository_owner }}/prontoaweb-db:15-alpine
+        docker push ghcr.io/${{ github.repository_owner }}/prontoaweb-db:15-alpine

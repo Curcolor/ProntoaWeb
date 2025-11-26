@@ -80,7 +80,24 @@ Sistema completo de gestión de pedidos para negocios locales con integración d
 
 ## Instalación Rápida
 
-### Un Solo Comando - Todo Automático ✨
+### Usando las imágenes publicadas en GHCR (recomendado)
+
+```bash
+# Autenticarse en GitHub Container Registry (token con read:packages)
+docker login ghcr.io -u curcolor --password-stdin <token>
+
+# Descargar el stack completo
+docker pull ghcr.io/curcolor/prontoaweb-web:latest
+docker pull ghcr.io/curcolor/prontoaweb-bot:latest
+docker pull ghcr.io/curcolor/prontoaweb-db:15-alpine
+
+# Levantar todo con Docker Compose
+docker compose up -d
+```
+
+> El archivo `docker-compose.yml` ya referencia estas imágenes, así que no necesitas construir nada en la máquina destino.
+
+### Construcción local (opcional)
 
 ```bash
 # Clonar repositorio
@@ -89,18 +106,13 @@ cd ProntoaWeb
 
 # Configurar variables de entorno
 cp .env.example .env
-# Editar .env con tus credenciales:
-# - PERPLEXITY_API_KEY (obtener en https://www.perplexity.ai/settings/api)
-# - WHATSAPP_PHONE_ID, WHATSAPP_TOKEN, WHATSAPP_VERIFY_TOKEN
-# - DATABASE_URL (ya configurado por docker-compose)
+# Editar .env con tus credenciales (Perplexity, WhatsApp, Telegram, DB, etc.)
 
-# Iniciar con Docker (TODO automático)
-docker-compose up --build
+# Iniciar con Docker (compila imágenes locales)
+docker compose up --build
 ```
 
-**Login:**
-- Email: `admin@prontoa.com`
-- Password: `admin123`
+**Login por defecto:** `admin@prontoa.com / admin123`
 
 ---
 
@@ -122,16 +134,16 @@ cp .env.example .env
 # - WHATSAPP_PHONE_ID, WHATSAPP_TOKEN, WHATSAPP_VERIFY_TOKEN
 # - Opcional: PERPLEXITY_MODEL (default: llama-3.1-sonar-small-128k-online)
 
-# Iniciar servicios
-docker-compose up -d db
+# Iniciar servicios auxiliares
+docker compose up -d db
 
-# Poblar base de datos
+# Poblar base de datos (seeds)
 python app/scripts/seed_database.py
 
-# Seed database (primera vez)
-python app/scripts/seed_database.py
+# Ejecutar el bot de Telegram (polling)
+python -m app.scripts.telegram_bot
 
-# Iniciar Flask
+# Iniciar Flask en modo dev
 python run.py
 ```
 
@@ -171,6 +183,42 @@ Password: admin123
 - Configurar delivery
 - Plantillas de WhatsApp
 - Cambiar contraseña
+
+### Bot de Telegram
+- Conversación 100% asistida por IA (Perplexity Sonar)
+- Confirmación de pedidos y generación automática en el backend
+- Notificaciones proactivas cuando el personal cambia el estado (`preparing`, `ready`, `sent`, `paid`)
+
+### Notificaciones en tiempo real
+- El servicio `TelegramService` envía mensajes predefinidos vía Bot API
+- Se integra con `OrderService.update_order_status` y con los endpoints de trabajadores
+- Konecta con `docker compose` o despliegues externos sin reconfigurar el bot
+
+---
+
+## 📦 Imágenes publicadas (GHCR)
+
+| Servicio        | Imagen                                        | Descripción |
+|-----------------|-----------------------------------------------|-------------|
+| Web / API       | `ghcr.io/curcolor/prontoaweb-web:latest`      | Flask + IA + dashboard |
+| Telegram Bot    | `ghcr.io/curcolor/prontoaweb-bot:latest`      | Misma build con comando `python -m app.scripts.telegram_bot` |
+| Base de datos   | `ghcr.io/curcolor/prontoaweb-db:15-alpine`    | Imagen oficial de Postgres re-etiquetada |
+
+**Comandos útiles**
+
+```bash
+# Reiniciar solo el contenedor web
+docker compose restart web
+
+# Detener, reconstruir y levantar todo
+docker compose down
+docker compose build
+docker compose up -d
+
+# Conectarse a PostgreSQL
+docker compose exec db psql -U prontoa_user -d prontoa_db
+\dt
+```
 
 ---
 
