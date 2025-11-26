@@ -25,7 +25,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: ghcr.io/cursedcolor/prontoaweb-web:latest
+        tags: ghcr.io/curcolor/prontoaweb-web:latest
 
     - name: Build and push telegram-bot image
       uses: docker/build-push-action@v4
@@ -33,7 +33,7 @@ jobs:
         context: .
         file: Dockerfile.bot
         push: true
-        tags: ghcr.io/cursedcolor/prontoaweb-bot:latest
+        tags: ghcr.io/curcolor/prontoaweb-bot:latest
 
     # Si usas una imagen propia para la base de datos, descomenta esta sección
     # - name: Build and push db image
@@ -42,4 +42,4 @@ jobs:
     #     context: .
     #     file: Dockerfile.db
     #     push: true
-    #     tags: ghcr.io/cursedcolor/prontoaweb-db:latest
+    #     tags: ghcr.io/curcolor/prontoaweb-db:latest
