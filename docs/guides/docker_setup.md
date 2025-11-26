@@ -14,25 +14,29 @@
 
 - **Docker**: versión 20.10 o superior
 - **Docker Compose**: versión 2.0 o superior
-- **Git**: para clonar el repositorio
+- **Git**: para clonar el repositorio (o pull de GHCR)
 - **Cuenta Perplexity AI**: para obtener API key (https://www.perplexity.ai/settings/api)
-- **WhatsApp Business API**: credenciales de Meta Developer
+- **Credenciales Telegram Bot**: token generado en BotFather (canal activo)
+- **WhatsApp Business API**: credenciales de Meta Developer (aún en espera de aprobación)
+- **Token GitHub Packages**: solo si descargarás imágenes pre-construidas desde GHCR
 
 ### Verificar Instalación
 ```bash
-docker --version          # Docker version 20.10+
-docker-compose --version  # Docker Compose version 2.0+
+docker --version       # Docker version 20.10+
+docker compose version # Docker Compose plugin version 2.0+
 ```
 
 ---
 
 ## Instalación Rápida
 
-### 1. Clonar Repositorio
+### 1. Clonar Repositorio (opcional si usarás imágenes GHCR)
 ```bash
 git clone https://github.com/Curcolor/ProntoaWeb.git
 cd ProntoaWeb
 ```
+
+> 💡 Si prefieres usar las imágenes publicadas en GitHub Container Registry (GHCR), autentícate con `docker login ghcr.io` y ejecuta `docker compose pull` antes de levantar los servicios.
 
 ### 2. Configurar Variables de Entorno
 ```bash
@@ -53,19 +57,22 @@ SECRET_KEY=tu-clave-secreta-segura-aqui
 # Database (ya configurada por Docker Compose)
 DATABASE_URL=postgresql://prontoa_user:prontoa_pass@db:5432/prontoa_db
 
-# WhatsApp API (obtener en Meta Developer Console)
-WHATSAPP_PHONE_ID=tu_phone_id
-WHATSAPP_TOKEN=tu_token
+# Telegram Bot (canal activo)
+TELEGRAM_BOT_TOKEN=tu_token_botfather
+
+# WhatsApp API (Meta Developer Console)
+WHATSAPP_PHONE_NUMBER_ID=tu_phone_id
+WHATSAPP_API_KEY=tu_token
 WHATSAPP_VERIFY_TOKEN=tu_verify_token
 
 # Perplexity AI (REQUERIDO - obtener en https://www.perplexity.ai/settings/api)
 PERPLEXITY_API_KEY=pplx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-PERPLEXITY_MODEL=llama-3.1-sonar-small-128k-online
+PERPLEXITY_MODEL=sonar
 ```
 
 ### 3. Iniciar Servicios
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 ✅ La aplicación estará disponible en: **http://localhost:5000**
@@ -80,20 +87,20 @@ docker-compose up --build
 
 ### Arquitectura Docker
 
-El proyecto usa **Docker Compose** con 2 servicios:
+El proyecto usa **Docker Compose** con 3 servicios:
 
 ```
 ┌─────────────────────────────────────────┐
 │          Docker Compose                 │
 ├─────────────────────────────────────────┤
 │                                         │
-│  ┌───────────────┐  ┌────────────────┐ │
-│  │   web         │  │      db        │ │
-│  │ Flask App     │──│   PostgreSQL   │ │
-│  │ Port: 5000    │  │   Port: 5432   │ │
-│  └───────────────┘  └────────────────┘ │
-│         │                    │          │
-│    Code Volume         Data Volume     │
+│  ┌───────────────┐  ┌────────────────┐  ┌────────────────────┐
+│  │   web         │  │      db        │  │  telegram-bot      │
+│  │ Flask + API   │──│   PostgreSQL   │──│ python-telegram-bot │
+│  │ Port: 5000    │  │   Port: 5432   │  │  long polling      │
+│  └───────────────┘  └────────────────┘  └────────────────────┘
+│         │                    │                    │          │
+│    Code Volume         Data Volume           App Volume      │
 └─────────────────────────────────────────┘
 ```
 
@@ -137,14 +144,17 @@ environment:
 
 **Variables desde .env:**
 ```yaml
+  # Telegram Bot (servicio web también necesita token para validar incoming requests)
+  - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+
   # WhatsApp API
-  - WHATSAPP_PHONE_ID=${WHATSAPP_PHONE_ID}
-  - WHATSAPP_TOKEN=${WHATSAPP_TOKEN}
+  - WHATSAPP_PHONE_NUMBER_ID=${WHATSAPP_PHONE_NUMBER_ID}
+  - WHATSAPP_API_KEY=${WHATSAPP_API_KEY}
   - WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN}
   
   # Perplexity AI
   - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
-  - PERPLEXITY_MODEL=${PERPLEXITY_MODEL:-llama-3.1-sonar-small-128k-online}
+  - PERPLEXITY_MODEL=${PERPLEXITY_MODEL:-sonar}
 ```
 
 **Volúmenes:**
@@ -159,6 +169,31 @@ volumes:
 depends_on:
   db:
     condition: service_healthy  # Espera a que PostgreSQL esté listo
+```
+
+### Servicio: `telegram-bot`
+
+**Imagen**: reutiliza el mismo build del servicio `web`. Ejecuta `python -m app.scripts.telegram_bot`.
+
+**Características:**
+- Consume el bot de Telegram vía `python-telegram-bot` en modo long polling.
+- No expone puertos; solo necesita salida a internet.
+- Comparte el volumen de código para permitir hot reload en desarrollo.
+- Utiliza las mismas credenciales de base de datos y Perplexity que `web`.
+
+**Variables clave:**
+```yaml
+  - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+  - DATABASE_URL=${DATABASE_URL}
+  - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
+  - PERPLEXITY_MODEL=${PERPLEXITY_MODEL:-sonar}
+```
+
+**Dependencias:**
+```yaml
+depends_on:
+  db:
+    condition: service_healthy
 ```
 
 ---
@@ -183,12 +218,18 @@ depends_on:
 
 **Nota**: En Docker Compose, usar `db` como hostname (nombre del servicio).
 
+### Telegram Bot
+
+| Variable | Descripción | Obtener en | Requerido |
+|----------|-------------|------------|-----------|
+| `TELEGRAM_BOT_TOKEN` | Token generado por BotFather | Telegram | ✅ |
+
 ### WhatsApp API
 
 | Variable | Descripción | Obtener en | Requerido |
 |----------|-------------|------------|-----------|
-| `WHATSAPP_PHONE_ID` | ID del número de WhatsApp | Meta Developer Console | ✅ |
-| `WHATSAPP_TOKEN` | Token de acceso | Meta Developer Console | ✅ |
+| `WHATSAPP_PHONE_NUMBER_ID` | ID del número de WhatsApp | Meta Developer Console | ✅ |
+| `WHATSAPP_API_KEY` | Token de acceso (Bearer) | Meta Developer Console | ✅ |
 | `WHATSAPP_VERIFY_TOKEN` | Token de verificación | Crear manualmente | ✅ |
 
 **Configurar webhook en Meta:**
@@ -202,7 +243,7 @@ depends_on:
 | Variable | Descripción | Default | Requerido |
 |----------|-------------|---------|-----------|
 | `PERPLEXITY_API_KEY` | API key de Perplexity | - | ✅ |
-| `PERPLEXITY_MODEL` | Modelo a usar | `llama-3.1-sonar-small-128k-online` | ⚠️ Opcional |
+| `PERPLEXITY_MODEL` | Modelo a usar | `sonar` | ⚠️ Opcional |
 
 **Obtener API Key:**
 1. Crear cuenta en: https://www.perplexity.ai
@@ -214,9 +255,11 @@ depends_on:
 
 | Modelo | Velocidad | Costo | Búsqueda Web | Uso Recomendado |
 |--------|-----------|-------|--------------|-----------------|
-| `llama-3.1-sonar-small-128k-online` | ⚡⚡⚡ Rápido | 💰 Bajo | ✅ | **Producción** (pedidos) |
+| `sonar` (alias `llama-3.1-sonar-small-128k-online`) | ⚡⚡⚡ Rápido | 💰 Bajo | ✅ | **Producción** (pedidos) |
 | `llama-3.1-sonar-large-128k-online` | ⚡⚡ Medio | 💰💰 Medio | ✅ | Análisis complejos |
 | `llama-3.1-sonar-huge-128k-online` | ⚡ Lento | 💰💰💰 Alto | ✅ | Tareas críticas |
+
+> `sonar` es un alias aceptado por el servicio de Perplexity que apunta a `llama-3.1-sonar-small-128k-online`. Usa los otros nombres completos si necesitas modelos mayores.
 
 **Costos aproximados** (Enero 2024):
 - Small: ~$1 USD por 1M tokens (~10,000 pedidos)
@@ -236,47 +279,47 @@ depends_on:
 
 ```bash
 # Primera vez (build + start)
-docker-compose up --build
+docker compose up --build
 
 # Modo detached (background)
-docker-compose up -d
+docker compose up -d
 
 # Solo base de datos
-docker-compose up -d db
+docker compose up -d db
 
 # Ver logs en tiempo real
-docker-compose logs -f web
+docker compose logs -f web
 ```
 
 ### Detener Servicios
 
 ```bash
 # Detener sin eliminar
-docker-compose stop
+docker compose stop
 
 # Detener y eliminar contenedores
-docker-compose down
+docker compose down
 
 # Eliminar todo (contenedores + volúmenes + imágenes)
-docker-compose down -v --rmi all
+docker compose down -v --rmi all
 ```
 
 ### Debugging
 
 ```bash
 # Ver logs de un servicio
-docker-compose logs web
-docker-compose logs db
+docker compose logs web
+docker compose logs db
 
 # Logs en tiempo real
-docker-compose logs -f web
+docker compose logs -f web
 
 # Acceder a shell del contenedor
-docker-compose exec web bash
-docker-compose exec db psql -U prontoa_user -d prontoa_db
+docker compose exec web bash
+docker compose exec db psql -U prontoa_user -d prontoa_db
 
 # Verificar estado de servicios
-docker-compose ps
+docker compose ps
 
 # Ver uso de recursos
 docker stats
@@ -286,32 +329,32 @@ docker stats
 
 ```bash
 # Conectar a PostgreSQL
-docker-compose exec db psql -U prontoa_user -d prontoa_db
+docker compose exec db psql -U prontoa_user -d prontoa_db
 
 # Backup de base de datos
-docker-compose exec db pg_dump -U prontoa_user prontoa_db > backup.sql
+docker compose exec db pg_dump -U prontoa_user prontoa_db > backup.sql
 
 # Restaurar backup
-docker-compose exec -T db psql -U prontoa_user -d prontoa_db < backup.sql
+docker compose exec -T db psql -U prontoa_user -d prontoa_db < backup.sql
 
 # Reiniciar solo la base de datos
-docker-compose restart db
+docker compose restart db
 ```
 
 ### Desarrollo
 
 ```bash
 # Rebuild después de cambiar Dockerfile
-docker-compose up --build
+docker compose up --build
 
 # Reinstalar dependencias Python
-docker-compose exec web pip install -r requirements.txt
+docker compose exec web pip install -r requirements.txt
 
 # Ejecutar seed de datos
-docker-compose exec web python app/scripts/seed_database.py
+docker compose exec web python app/scripts/seed_database.py
 
 # Ejecutar Flask shell
-docker-compose exec web flask shell
+docker compose exec web flask shell
 ```
 
 ---
@@ -349,12 +392,12 @@ lsof -ti:5000 | xargs kill -9
 
 **Solución 2**: Verificar logs:
 ```bash
-docker-compose logs db
+docker compose logs db
 ```
 
 **Solución 3**: Reiniciar servicio:
 ```bash
-docker-compose restart db
+docker compose restart db
 ```
 
 ---
@@ -366,7 +409,7 @@ docker-compose restart db
 **Solución**:
 1. Verificar que `.env` existe: `ls -la .env`
 2. Verificar contenido: `cat .env | grep PERPLEXITY`
-3. Reiniciar contenedores: `docker-compose restart web`
+3. Reiniciar contenedores: `docker compose restart web`
 
 ---
 
@@ -380,7 +423,7 @@ docker-compose restart db
 sudo chown -R $USER:$USER .
 
 # O ejecutar Docker con tu usuario
-docker-compose up
+docker compose up
 ```
 
 **Solución Windows**: Verificar que Docker Desktop tiene acceso a la carpeta.
@@ -394,8 +437,8 @@ docker-compose up
 **Solución**:
 ```bash
 # Limpiar caché y rebuild
-docker-compose build --no-cache web
-docker-compose up web
+docker compose build --no-cache web
+docker compose up web
 ```
 
 ---
@@ -405,7 +448,7 @@ docker-compose up web
 **Problema**: Credenciales incorrectas o expiradas.
 
 **Verificar**:
-1. `WHATSAPP_TOKEN` es válido en Meta Developer Console
+1. `WHATSAPP_API_KEY` es válido en Meta Developer Console
 2. `WHATSAPP_VERIFY_TOKEN` coincide en ambos lados
 3. Token no ha expirado (renovar si es temporal)
 
@@ -415,7 +458,7 @@ docker-compose up web
 nano .env
 
 # Reiniciar servicio web
-docker-compose restart web
+docker compose restart web
 ```
 
 ---
@@ -436,7 +479,7 @@ docker-compose restart web
 PERPLEXITY_API_KEY=pplx-nueva-key-aqui
 
 # Reiniciar
-docker-compose restart web
+docker compose restart web
 ```
 
 ---
@@ -448,10 +491,10 @@ docker-compose restart web
 **Debugging**:
 ```bash
 # Ver logs completos
-docker-compose logs web
+docker compose logs web
 
 # Entrar al contenedor
-docker-compose exec web bash
+docker compose exec web bash
 
 # Verificar instalación
 pip list
@@ -468,13 +511,13 @@ Si todo falla, reset total:
 
 ```bash
 # 1. Detener y eliminar todo
-docker-compose down -v
+docker compose down -v
 
 # 2. Limpiar imágenes
 docker system prune -a --volumes
 
 # 3. Rebuild desde cero
-docker-compose up --build
+docker compose up --build
 ```
 
 ---
@@ -496,6 +539,12 @@ DATABASE_URL=postgresql://user:pass@prod-db-host:5432/db
 
 # Perplexity con modelo más preciso (opcional)
 PERPLEXITY_MODEL=llama-3.1-sonar-large-128k-online
+
+# Credenciales de mensajería
+TELEGRAM_BOT_TOKEN=<token-produccion>
+WHATSAPP_API_KEY=<token-meta>
+WHATSAPP_PHONE_NUMBER_ID=<numero-meta>
+WHATSAPP_VERIFY_TOKEN=<verify-token>
 ```
 
 **2. docker-compose.yml**

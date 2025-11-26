@@ -28,9 +28,14 @@ Sistema completo de gestión de pedidos para negocios locales con integración d
 - Restricción estricta al contexto del negocio
 
 ### Integración WhatsApp Business
-- Recepción de mensajes via webhook
-- Envío de confirmaciones automáticas
-- Plantillas personalizables
+- Recepción de mensajes vía webhook (listo para producción)
+- Envío de confirmaciones automáticas y plantillas personalizables
+- Actualmente en pausa de pruebas con Meta; Telegram es el canal activo mientras se liberan permisos
+
+### Bot de Telegram
+- Conversaciones asistidas por IA Sirviendo como canal principal de pruebas
+- Crea pedidos automáticamente con confirmación explícita del cliente
+- Envía notificaciones al cliente cuando el equipo cambia estados (`preparing`, `ready`, `sent`, `paid`)
 
 ### Dashboard en Tiempo Real
 - Kanban board con drag & drop funcional
@@ -60,8 +65,9 @@ Sistema completo de gestión de pedidos para negocios locales con integración d
 - Marshmallow + WTForms
 
 ### AI & Integrations
-- Perplexity AI (Llama 3.1 Sonar) - Respuestas cortas y enfocadas
-- WhatsApp Business API / Twilio
+- Perplexity AI (modelo Sonar) como motor principal del agente
+- Telegram Bot API como canal activo (polling con `python-telegram-bot`)
+- WhatsApp Business API listo para producción cuando Meta habilite el canal
 - Stripe Payments
 
 ### Real-time
@@ -130,9 +136,10 @@ pip install -r requirements.txt
 # Configurar variables
 cp .env.example .env
 # Editar .env con tus credenciales:
-# - PERPLEXITY_API_KEY (obtener en https://www.perplexity.ai/settings/api)
-# - WHATSAPP_PHONE_ID, WHATSAPP_TOKEN, WHATSAPP_VERIFY_TOKEN
-# - Opcional: PERPLEXITY_MODEL (default: llama-3.1-sonar-small-128k-online)
+# - PERPLEXITY_API_KEY y PERPLEXITY_MODEL (default: sonar)
+# - TELEGRAM_BOT_TOKEN (para el bot de pruebas activo)
+# - WHATSAPP_API_KEY, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_VERIFY_TOKEN
+# - Variables de base de datos o servicios externos si aplican
 
 # Iniciar servicios auxiliares
 docker compose up -d db
@@ -188,6 +195,7 @@ Password: admin123
 - Conversación 100% asistida por IA (Perplexity Sonar)
 - Confirmación de pedidos y generación automática en el backend
 - Notificaciones proactivas cuando el personal cambia el estado (`preparing`, `ready`, `sent`, `paid`)
+- Se ejecuta con `python -m app.scripts.telegram_bot` y es el canal oficial de QA hoy
 
 ### Notificaciones en tiempo real
 - El servicio `TelegramService` envía mensajes predefinidos vía Bot API
@@ -224,9 +232,10 @@ docker compose exec db psql -U prontoa_user -d prontoa_db
 
 ## 📖 Documentación Completa
 
-- [**🐳 Docker Setup**](docs/DOCKER_SETUP.md) - Guía completa de Docker con Perplexity AI
-- [**🤖 Perplexity Setup**](docs/PERPLEXITY_SETUP.md) - Configuración de Perplexity AI
-- [**📡 API Examples**](docs/Documentation/API_EXAMPLES.md) - Ejemplos de uso de todas las APIs
+- [**📚 Índice de documentación**](docs/README.md) - Guía rápida de carpetas y manuales disponibles
+- [**🐳 Docker Setup**](docs/guides/docker_setup.md) - Stack completo con imágenes GHCR y variables
+- [**📡 API Examples**](docs/reference/api_examples.md) - Ejemplos y flujos para cada endpoint
+- [**🧭 Metodología Scrum**](docs/process/scrum_workflow.md) - Convenciones de ramas y flujo ágil
 
 ---
 
